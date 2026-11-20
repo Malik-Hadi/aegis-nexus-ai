@@ -1,0 +1,42 @@
+{
+  "fixture": "DET-003-neg",
+  "description": "3 failed connections to one port",
+  "expected": {
+    "alerts": 0
+  },
+  "events": [
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:00Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 443
+      },
+      "idempotency_key": "fx-det003-neg-0"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:05Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 443
+      },
+      "idempotency_key": "fx-det003-neg-1"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:10Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 443
+      },
+      "idempotency_key": "fx-det003-neg-2"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.eol": "\n",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.minimap.enabled": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4
+  },
+  "[sql]": { "editor.formatOnSave": false },
+  "go.toolsManagement.autoUpdate": true,
+  "go.lintOnSave": "package",
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "terminal.integrated.scrollback": 5000,
+  "explorer.confirmDelete": false,
+  "files.exclude": { "**/node_modules": true, "**/.next": true },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/bin": true
+  },
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "askForPassword": true,
+      "driver": "PostgreSQL",
+      "name": "aegis",
+      "database": "aegis",
+      "username": "aegis"
+    }
+  ],
+  "editor.mouseWheelZoom": true
+}

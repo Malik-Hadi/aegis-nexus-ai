@@ -1,0 +1,81 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DB: start (docker compose up -d)",
+      "type": "shell",
+      "command": "docker compose -f deploy/docker-compose.yml --env-file .env up -d",
+      "problemMatcher": []
+    },
+    {
+      "label": "DB: stop",
+      "type": "shell",
+      "command": "docker compose -f deploy/docker-compose.yml --env-file .env down",
+      "problemMatcher": []
+    },
+    {
+      "label": "DB: reset (DELETES DATA)",
+      "type": "shell",
+      "command": "docker compose -f deploy/docker-compose.yml --env-file .env down -v",
+      "problemMatcher": []
+    },
+    {
+      "label": "DB: status",
+      "type": "shell",
+      "command": "docker compose -f deploy/docker-compose.yml --env-file .env ps",
+      "problemMatcher": []
+    },
+    {
+      "label": "API: run",
+      "type": "shell",
+      "command": "go run ./services/api",
+      "problemMatcher": []
+    },
+    {
+      "label": "Go: test all",
+      "type": "shell",
+      "command": "go test ./...",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Go: vet",
+      "type": "shell",
+      "command": "go vet ./...",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build agent: Linux",
+      "type": "shell",
+      "command": "go build -o bin/agent-linux ./agents/endpoint",
+      "options": {
+        "env": {
+          "GOOS": "linux",
+          "GOARCH": "amd64"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build agent: Windows",
+      "type": "shell",
+      "command": "go build -o bin/agent.exe ./agents/endpoint",
+      "options": {
+        "env": {
+          "GOOS": "windows",
+          "GOARCH": "amd64"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "go",
+      "label": "go: test package",
+      "command": "test",
+      "args": ["${fileDirname}"],
+      "problemMatcher": ["$go"],
+      "group": "test",
+      "detail": "cd d:\\Projects\\aegis-nexus-ai; go test ${fileDirname}"
+    }
+  ]
+}

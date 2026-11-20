@@ -1,0 +1,120 @@
+{
+  "fixture": "DET-003-pos",
+  "description": "10 failed connections to multiple ports from one source",
+  "expected": {
+    "alerts": 1,
+    "severity": "medium"
+  },
+  "events": [
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:00Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 22
+      },
+      "idempotency_key": "fx-det003-pos-22"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:05Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 80
+      },
+      "idempotency_key": "fx-det003-pos-80"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:10Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 443
+      },
+      "idempotency_key": "fx-det003-pos-443"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:15Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 445
+      },
+      "idempotency_key": "fx-det003-pos-445"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:20Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 3389
+      },
+      "idempotency_key": "fx-det003-pos-3389"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:25Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 8080
+      },
+      "idempotency_key": "fx-det003-pos-8080"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:30Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 5900
+      },
+      "idempotency_key": "fx-det003-pos-5900"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:35Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 21
+      },
+      "idempotency_key": "fx-det003-pos-21"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:40Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 23
+      },
+      "idempotency_key": "fx-det003-pos-23"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "net.connection_failed",
+      "occurred_at": "2026-11-20T10:00:45Z",
+      "severity": "low",
+      "payload": {
+        "source_ip": "198.51.100.7",
+        "dest_port": 25
+      },
+      "idempotency_key": "fx-det003-pos-25"
+    }
+  ]
+}

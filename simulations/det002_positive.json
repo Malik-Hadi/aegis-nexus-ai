@@ -1,0 +1,22 @@
+{
+  "fixture": "DET-002-pos",
+  "description": "Unexpected new privileged group membership",
+  "expected": {
+    "alerts": 1,
+    "severity": "high"
+  },
+  "events": [
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "privilege.group_added",
+      "occurred_at": "2026-11-20T10:00:00Z",
+      "severity": "medium",
+      "payload": {
+        "user": "lab-user-02",
+        "group": "Administrators",
+        "added_by": "unknown"
+      },
+      "idempotency_key": "fx-det002-pos-1"
+    }
+  ]
+}

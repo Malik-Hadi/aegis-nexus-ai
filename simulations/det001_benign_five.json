@@ -1,0 +1,65 @@
+{
+  "fixture": "DET-001-neg-a",
+  "description": "Only 5 failed logins in 5 minutes",
+  "expected": {
+    "alerts": 0,
+    "incidents": 0
+  },
+  "events": [
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "auth.failed_login",
+      "occurred_at": "2026-11-20T10:00:00Z",
+      "severity": "low",
+      "payload": {
+        "user": "lab-user-01",
+        "source_ip": "192.0.2.10"
+      },
+      "idempotency_key": "fx-det001-neg5-0"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "auth.failed_login",
+      "occurred_at": "2026-11-20T10:00:50Z",
+      "severity": "low",
+      "payload": {
+        "user": "lab-user-01",
+        "source_ip": "192.0.2.10"
+      },
+      "idempotency_key": "fx-det001-neg5-1"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "auth.failed_login",
+      "occurred_at": "2026-11-20T10:01:40Z",
+      "severity": "low",
+      "payload": {
+        "user": "lab-user-01",
+        "source_ip": "192.0.2.10"
+      },
+      "idempotency_key": "fx-det001-neg5-2"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "auth.failed_login",
+      "occurred_at": "2026-11-20T10:02:30Z",
+      "severity": "low",
+      "payload": {
+        "user": "lab-user-01",
+        "source_ip": "192.0.2.10"
+      },
+      "idempotency_key": "fx-det001-neg5-3"
+    },
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "auth.failed_login",
+      "occurred_at": "2026-11-20T10:03:20Z",
+      "severity": "low",
+      "payload": {
+        "user": "lab-user-01",
+        "source_ip": "192.0.2.10"
+      },
+      "idempotency_key": "fx-det001-neg5-4"
+    }
+  ]
+}

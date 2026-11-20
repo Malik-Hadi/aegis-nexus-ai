@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "golang.go",
+    "ms-azuretools.vscode-docker",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+    "rangav.vscode-thunder-client",
+    "redhat.vscode-yaml",
+    "eamodio.gitlens"
+  ]
+}

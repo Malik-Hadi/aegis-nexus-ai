@@ -1,0 +1,21 @@
+{
+  "fixture": "DET-002-neg",
+  "description": "Non-privileged group membership",
+  "expected": {
+    "alerts": 0
+  },
+  "events": [
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "privilege.group_added",
+      "occurred_at": "2026-11-20T10:00:00Z",
+      "severity": "info",
+      "payload": {
+        "user": "lab-user-02",
+        "group": "Printer Users",
+        "added_by": "lab-admin"
+      },
+      "idempotency_key": "fx-det002-neg-1"
+    }
+  ]
+}
