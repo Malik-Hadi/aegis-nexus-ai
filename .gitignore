@@ -10,3 +10,9 @@ bin/
 coverage/
 playwright-report/
 test-results/
+
+agent-state.json
+agent-queue.jsonl
+
+agent-state.json
+agent-queue.jsonl

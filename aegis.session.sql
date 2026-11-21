@@ -1,0 +1,1 @@
+SELECT kind, occurred_at FROM events ORDER BY received_at DESC LIMIT 6;
