@@ -16,6 +16,7 @@ type Server struct {
 	secret       []byte
 	secureCookie bool
 	dummyHash    []byte
+	ioc          iocSet
 }
 
 type ctxKey struct{}
@@ -50,6 +51,10 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /v1/agents/{id}/revoke", s.requireRole(s.handleRevoke, "admin"))
 	mux.HandleFunc("POST /v1/events", s.requireAgent(s.handleIngest))
 	mux.HandleFunc("GET /v1/events", s.requireAuth(s.handleListEvents))
+
+	// Block 4: incidents (read-only for now)
+	mux.HandleFunc("GET /v1/incidents", s.requireAuth(s.handleListIncidents))
+	mux.HandleFunc("GET /v1/incidents/{id}", s.requireAuth(s.handleGetIncident))
 	return mux
 }
 

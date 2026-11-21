@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -117,6 +118,9 @@ func (s *Server) handleIngest(w http.ResponseWriter, r *http.Request) {
 	}
 	_, _ = s.pool.Exec(r.Context(),
 		`UPDATE agents SET last_seen_at = now() WHERE id = $1::text::uuid AND tenant_id = $2::text::uuid`, a.ID, a.TenantID)
+	ectx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	s.evaluate(ectx, a.TenantID, a.ID, id, c)
 	writeJSON(w, http.StatusAccepted, map[string]string{"status": "accepted", "event_id": id})
 }
 

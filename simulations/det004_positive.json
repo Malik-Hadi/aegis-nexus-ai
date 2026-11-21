@@ -1,0 +1,22 @@
+{
+  "fixture": "DET-004-pos",
+  "description": "Executable whose SHA-256 is in the lab IOC list",
+  "expected": {
+    "alerts": 1,
+    "severity": "high"
+  },
+  "events": [
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "process.executable_seen",
+      "occurred_at": "2026-11-20T10:00:00Z",
+      "severity": "medium",
+      "payload": {
+        "host": "LAB-WIN-01",
+        "path": "C:\\lab\\sample.exe",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+      },
+      "idempotency_key": "fx-det004-pos-1"
+    }
+  ]
+}

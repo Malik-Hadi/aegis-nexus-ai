@@ -71,6 +71,17 @@ func main() {
 		dummyHash:    dummy,
 	}
 
+	iocPath := os.Getenv("IOC_FILE")
+	if iocPath == "" {
+		iocPath = "simulations/ioc_hashes.txt"
+	}
+	ioc, err := loadIOC(iocPath)
+	if err != nil {
+		log.Printf("warning: IOC list not loaded (%v); DET-004 is inactive", err)
+	}
+	srv.ioc = ioc
+	go srv.monitorHeartbeats(context.Background())
+
 	log.Printf("AEGIS API listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, srv.routes()))
 }

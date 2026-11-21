@@ -1,1 +1,2 @@
-SELECT kind, occurred_at FROM events ORDER BY received_at DESC LIMIT 6;
+SELECT rule_id, severity, status, title, created_at FROM incidents ORDER BY created_at DESC;
+SELECT i.rule_id, count(ie.event_id) AS evidence_events FROM incidents i LEFT JOIN incident_events ie ON ie.incident_id = i.id GROUP BY i.id, i.rule_id;

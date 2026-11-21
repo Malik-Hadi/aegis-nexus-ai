@@ -1,0 +1,21 @@
+{
+  "fixture": "DET-004-neg",
+  "description": "Executable whose hash is NOT in the IOC list",
+  "expected": {
+    "alerts": 0
+  },
+  "events": [
+    {
+      "agent_id": "lab-agent-01",
+      "kind": "process.executable_seen",
+      "occurred_at": "2026-11-20T10:00:00Z",
+      "severity": "info",
+      "payload": {
+        "host": "LAB-WIN-01",
+        "path": "C:\\lab\\calc.exe",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+      },
+      "idempotency_key": "fx-det004-neg-1"
+    }
+  ]
+}
