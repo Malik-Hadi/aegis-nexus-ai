@@ -3,7 +3,8 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/json"
+	"crypto/rand"
+	"encoding/hex"
 	"log"
 	"net/http"
 	"os"
@@ -11,9 +12,10 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// loadEnv reads KEY=VALUE lines from a .env file (run the API from the project root).
+// loadEnv reads KEY=VALUE lines from .env (run the API from the project root).
 func loadEnv(path string) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -37,12 +39,6 @@ func loadEnv(path string) {
 	}
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
-}
-
 func main() {
 	loadEnv(".env")
 
@@ -50,29 +46,31 @@ func main() {
 	if addr == "" {
 		addr = ":8080"
 	}
+	secret := os.Getenv("SESSION_SECRET")
+	if len(secret) < 32 {
+		log.Fatal("SESSION_SECRET must be at least 32 characters (see .env)")
+	}
 
-	pool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("database config error: %v", err)
 	}
 	defer pool.Close()
 
-	mux := http.NewServeMux()
+	// Dummy hash so a login for an unknown user takes about as long as a real one.
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	dummy, _ := bcrypt.GenerateFromPassword([]byte(hex.EncodeToString(b)), bcrypt.DefaultCost)
 
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-	})
-
-	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-		defer cancel()
-		if err := pool.Ping(ctx); err != nil {
-			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "not ready", "database": "down"})
-			return
-		}
-		writeJSON(w, http.StatusOK, map[string]string{"status": "ready", "database": "up"})
-	})
+	srv := &Server{
+		pool:         pool,
+		secret:       []byte(secret),
+		secureCookie: os.Getenv("COOKIE_SECURE") == "true",
+		dummyHash:    dummy,
+	}
 
 	log.Printf("AEGIS API listening on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	log.Fatal(http.ListenAndServe(addr, srv.routes()))
 }
