@@ -41,6 +41,15 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("/v1/auth/logout", s.handleLogout)
 	mux.HandleFunc("/v1/me", s.requireAuth(s.handleMe))
 	mux.HandleFunc("/v1/admin/ping", s.requireRole(s.handleAdminPing, "admin"))
+
+	// Block 2: agents and events
+	mux.HandleFunc("POST /v1/admin/enrolment-tokens", s.requireRole(s.handleCreateEnrolToken, "admin"))
+	mux.HandleFunc("POST /v1/agents/enrol", s.handleEnrol)
+	mux.HandleFunc("POST /v1/agents/heartbeat", s.requireAgent(s.handleHeartbeat))
+	mux.HandleFunc("GET /v1/agents", s.requireAuth(s.handleListAgents))
+	mux.HandleFunc("POST /v1/agents/{id}/revoke", s.requireRole(s.handleRevoke, "admin"))
+	mux.HandleFunc("POST /v1/events", s.requireAgent(s.handleIngest))
+	mux.HandleFunc("GET /v1/events", s.requireAuth(s.handleListEvents))
 	return mux
 }
 
