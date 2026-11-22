@@ -30,3 +30,5 @@ Verify-all: RESULT: 76 passed, 0 failed
 | TLS | LAB PASS | HTTPS via cmd/tlsproxy; negotiated protocol recorded in docs\evidence\tls-version-20261122-2346.txt; not production TLS |
 
 
+
+| Dependency scan (govulncheck) | PASS | Local run: no vulnerabilities found. GitHub security workflow green (run security #2, commit a9b343c) after switching CI to latest stable Go. An earlier run (#1) failed before that fix. |
