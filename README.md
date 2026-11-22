@@ -7,3 +7,7 @@ Defensive SOC prototype. Lab/synthetic data only. See docs/spec.md.
 3. API: `go run ./services/api` then open http://localhost:8080/healthz
 
 Or use VS Code: Ctrl+Shift+P -> "Tasks: Run Task".
+
+## SOC console
+
+The Next.js console runs separately on port 3000 and connects to the Go API on port 8080. See [the lab runbook](docs/runbook.md) for setup, verification, the analyst demo, TLS and rollback.

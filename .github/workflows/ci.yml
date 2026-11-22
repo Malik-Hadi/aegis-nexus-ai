@@ -7,6 +7,73 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version-file: go.mod
       - run: go vet ./...
       - run: go test ./...
+
+  dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/dashboard/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps --no-shell chromium
+      - run: node scripts/test-production.mjs --browser
+      - run: npm audit --omit=dev
+
+  database-integration:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: aegis
+          POSTGRES_DB: aegis
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aegis -d aegis"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgres://aegis@127.0.0.1:5432/aegis?sslmode=disable
+      API_ADDR: 127.0.0.1:18080
+      SOC_LAB_API: http://127.0.0.1:18080
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Apply database migrations
+        env:
+          DB_CONTAINER: ${{ job.services.db.id }}
+        run: |
+          for migration in db/migrations/*.sql; do
+            docker exec -i "$DB_CONTAINER" psql -U aegis -d aegis -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Verify persisted SOC workflow and Linux endpoint agent
+        run: |
+          export SESSION_SECRET="$(openssl rand -hex 32)"
+          seed="$(go run ./cmd/seed)"
+          export LAB_ADMIN_A="$(sed -n 's/.*user=admin-a[[:space:]].*password=//p' <<< "$seed")"
+          export LAB_ANALYST_A="$(sed -n 's/.*user=analyst-a[[:space:]].*password=//p' <<< "$seed")"
+          export LAB_ADMIN_B="$(sed -n 's/.*user=admin-b[[:space:]].*password=//p' <<< "$seed")"
+          go build -o "$RUNNER_TEMP/aegis-api" ./services/api
+          go build -o "$RUNNER_TEMP/aegis-agent" ./agents/endpoint
+          "$RUNNER_TEMP/aegis-api" &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          curl --fail --silent --retry 20 --retry-connrefused "$SOC_LAB_API/readyz"
+          SOC_LAB_AGENT_BIN="$RUNNER_TEMP/aegis-agent" node tests/e2e/live-api.mjs

@@ -179,6 +179,7 @@ func (s *Server) handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "server error"})
 		return
 	}
+	s.hub.publish(a.TenantID, "agent.heartbeat", map[string]any{"id": a.ID})
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
@@ -238,5 +239,6 @@ func (s *Server) handleRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.audit(r.Context(), sess.TenantID, sess.Subject, "agent.revoke", id, "success")
+	s.hub.publish(sess.TenantID, "agent.revoked", map[string]any{"id": id, "hostname": host})
 	writeJSON(w, http.StatusOK, map[string]string{"status": "revoked", "hostname": host})
 }

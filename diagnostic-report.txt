@@ -1,0 +1,393 @@
+﻿
+=== 1. MACHINE AND TOOLS ===
+time: 2026-11-22T19:22:03   folder: D:\Projects\aegis-nexus-ai
+windows: Microsoft Windows NT 10.0.26200.0   powershell: 5.1.26100.9818
+> go version
+   go version go1.27.4 windows/amd64
+> node -v
+   v26.13.1
+> npm -v
+   11.20.0
+> git --version
+   git version 2.56.1.windows.1
+> docker --version
+   Docker version 29.9.3, build 5457199
+
+=== 2. DOCKER AND THE DATABASE CONTAINER ===
+> docker engine
+   engine=29.9.3 os=Docker Desktop cpus=12 memGB=8165015552
+> containers (all)
+   aegis-at01-3be51577-db-1 | Up About an hour (healthy) | 127.0.0.1:55436->5432/tcp
+   deploy-db-1 | Up About an hour (healthy) | 127.0.0.1:55435->5432/tcp
+> volumes
+   aegis-at01-3be51577_pgdata
+   deploy_pgdata
+> compose file deploy/docker-compose.yml
+   services:
+     db:
+       image: postgres:16
+       restart: unless-stopped
+       environment:
+         POSTGRES_USER: ${POSTGRES_USER}
+         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+         POSTGRES_DB: ${POSTGRES_DB}
+       ports:
+         - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+       volumes:
+         - pgdata:/var/lib/postgresql/data
+         # Runs once, on first start with an empty volume. Reset with "DB: reset".
+         - ../db/migrations:/docker-entrypoint-initdb.d:ro
+       healthcheck:
+         test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+         interval: 5s
+         timeout: 3s
+         retries: 10
+   
+   volumes:
+     pgdata:
+> compose status
+   NAME          IMAGE         COMMAND                  SERVICE   CREATED       STATUS                       PORTS
+   deploy-db-1   postgres:16   "docker-entrypoint.sΓÇª"   db        2 hours ago   Up About an hour (healthy)   127.0.0.1:55435->5432/tcp
+> database logs (last 40 lines)
+   db-1  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+   db-1  | 
+   db-1  | 2026-11-22 12:09:57.026 UTC [1] LOG:  starting PostgreSQL 16.16 (Debian 16.16-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+   db-1  | 2026-11-22 12:09:57.026 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+   db-1  | 2026-11-22 12:09:57.026 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+   db-1  | 2026-11-22 12:09:57.030 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+   db-1  | 2026-11-22 12:09:57.035 UTC [30] LOG:  database system was shut down at 2026-11-22 11:59:55 UTC
+   db-1  | 2026-11-22 12:09:57.049 UTC [1] LOG:  database system is ready to accept connections
+   db-1  | 2026-11-22 12:14:57.132 UTC [28] LOG:  checkpoint starting: time
+   db-1  | 2026-11-22 12:14:57.154 UTC [28] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.003 s, total=0.022 s; sync files=3, longest=0.002 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1EFF528, redo lsn=0/1EFF4F0
+   db-1  | 2026-11-22 12:34:11.353 UTC [1132] ERROR:  duplicate key value violates unique constraint "approvals_one_pending"
+   db-1  | 2026-11-22 12:34:11.353 UTC [1132] DETAIL:  Key (incident_id)=(977f64d9-2742-402d-a955-83441028cf8c) already exists.
+   db-1  | 2026-11-22 12:34:11.353 UTC [1132] STATEMENT:  INSERT INTO approvals (tenant_id, incident_id, action, requester)
+   db-1  | 			 VALUES ($1::text::uuid, $2::text::uuid, $3, $4::text::uuid) RETURNING id::text
+   db-1  | 2026-11-22 12:37:54.594 UTC [28] LOG:  checkpoint starting: time
+   db-1  | 2026-11-22 12:38:00.762 UTC [28] LOG:  checkpoint complete: wrote 61 buffers (0.4%); 0 WAL file(s) added, 0 removed, 0 recycled; write=6.052 s, sync=0.061 s, total=6.169 s; sync files=42, longest=0.034 s, average=0.002 s; distance=260 kB, estimate=260 kB; lsn=0/1F40720, redo lsn=0/1F406E8
+   db-1  | 2026-11-22 12:48:39.622 UTC [2535] ERROR:  duplicate key value violates unique constraint "approvals_one_pending"
+   db-1  | 2026-11-22 12:48:39.622 UTC [2535] DETAIL:  Key (incident_id)=(5069154e-848b-4af1-af81-38e4861dae21) already exists.
+   db-1  | 2026-11-22 12:48:39.622 UTC [2535] STATEMENT:  INSERT INTO approvals (tenant_id, incident_id, action, requester)
+   db-1  | 			 VALUES ($1::text::uuid, $2::text::uuid, $3, $4::text::uuid) RETURNING id::text
+   db-1  | 2026-11-22 12:52:55.006 UTC [28] LOG:  checkpoint starting: time
+   db-1  | 2026-11-22 12:53:01.327 UTC [28] LOG:  checkpoint complete: wrote 63 buffers (0.4%); 0 WAL file(s) added, 0 removed, 0 recycled; write=6.247 s, sync=0.051 s, total=6.321 s; sync files=43, longest=0.024 s, average=0.002 s; distance=326 kB, estimate=326 kB; lsn=0/1F92080, redo lsn=0/1F92048
+   db-1  | 2026-11-22 12:53:53.433 UTC [1] LOG:  received fast shutdown request
+   db-1  | 2026-11-22 12:53:53.440 UTC [1] LOG:  aborting any active transactions
+   db-1  | 2026-11-22 12:53:53.443 UTC [1] LOG:  background worker "logical replication launcher" (PID 33) exited with exit code 1
+   db-1  | 2026-11-22 12:53:53.445 UTC [28] LOG:  shutting down
+   db-1  | 2026-11-22 12:53:53.449 UTC [28] LOG:  checkpoint starting: shutdown immediate
+   db-1  | 2026-11-22 12:53:53.462 UTC [28] LOG:  checkpoint complete: wrote 0 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.017 s; sync files=0, longest=0.000 s, average=0.000 s; distance=0 kB, estimate=293 kB; lsn=0/1F92130, redo lsn=0/1F92130
+   db-1  | 2026-11-22 12:53:53.469 UTC [1] LOG:  database system is shut down
+   db-1  | 
+   db-1  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+   db-1  | 
+   db-1  | 2026-11-22 12:54:26.590 UTC [1] LOG:  starting PostgreSQL 16.16 (Debian 16.16-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+   db-1  | 2026-11-22 12:54:26.591 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+   db-1  | 2026-11-22 12:54:26.591 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+   db-1  | 2026-11-22 12:54:26.605 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+   db-1  | 2026-11-22 12:54:26.621 UTC [29] LOG:  database system was shut down at 2026-11-22 12:53:53 UTC
+   db-1  | 2026-11-22 12:54:26.660 UTC [1] LOG:  database system is ready to accept connections
+   db-1  | 2026-11-22 12:59:26.655 UTC [27] LOG:  checkpoint starting: time
+   db-1  | 2026-11-22 12:59:26.724 UTC [27] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.009 s, sync=0.005 s, total=0.069 s; sync files=3, longest=0.004 s, average=0.002 s; distance=0 kB, estimate=0 kB; lsn=0/1F92218, redo lsn=0/1F921E0
+
+=== 3. PORTS IN USE (5432/5433 database, 8080 API, 3000 dev dashboard) ===
+   port 3000 <- node (pid 15348)
+   port 8080 <- api (pid 17336)
+
+=== 4. .env (names and shapes only, secrets masked) ===
+   POSTGRES_USER = aegis
+   POSTGRES_PASSWORD = ***(length 13)
+   POSTGRES_DB = aegis
+   POSTGRES_PORT = 5432
+   DATABASE_URL = postgres://aegis:***@localhost:5432/aegis?sslmode=disable
+   API_ADDR = :8080
+   SESSION_SECRET = ***(length 64)
+   ENROLMENT_TOKEN = ***(length 28)
+   LLM_API_KEY = ***(length 0)
+   url says: user=aegis host=localhost port=5432 db=aegis
+
+=== 5. DATABASE CONTENT ===
+> pg_isready
+   /var/run/postgresql:5432 - accepting connections
+   connected as: aegis @ aegis
+   tables: agents, alerts, approvals, audit_logs, enrolment_tokens, events, incident_events, incidents, rules, tenants, users
+   rows in tenants    = 2
+   rows in users      = 4
+   rows in agents     = 2
+   rows in events     = 26
+   rows in incidents  = 3
+   rows in alerts     = 4
+   rows in approvals  = 0
+   rows in audit_logs = 820
+
+=== 6. API ===
+   GET /healthz -> 200 {"status":"ok"}
+
+   GET /readyz -> 503
+   GET /v1/me -> 401
+   GET / -> 200; Next.js build served: False
+   dashboard build present (apps\dashboard\out\index.html): False
+
+=== 7. GIT (what changed since the last commit) ===
+> last commits
+   31f0f1e block 4: detection rules, alerts, incidents
+   e0f4877 block 3: go agent
+   aff1af7 verify backend script, all checks pass
+   58a42c2 block 2: agents, events, tenant isolation, revocation
+   3e82feb block 1: login, roles, auth tests
+   892480b before block 1
+   14d4065 setup complete
+> uncommitted changes (status)
+    M .env.example
+    M .github/workflows/ci.yml
+    M .gitignore
+    M PROGRESS.md
+    M README.md
+    M deploy/docker-compose.yml
+    M docs/limitations.md
+    M scripts/verify-backend.ps1
+    M services/api/agents.go
+    M services/api/events.go
+    M services/api/incidents.go
+    M services/api/main.go
+    M services/api/rules.go
+    M services/api/server.go
+   ?? apps/dashboard/.env.example
+   ?? apps/dashboard/.gitignore
+   ?? apps/dashboard/README.md
+   ?? apps/dashboard/app/
+   ?? apps/dashboard/components/
+   ?? apps/dashboard/lib/
+   ?? apps/dashboard/next-env.d.ts
+   ?? apps/dashboard/next.config.mjs
+   ?? apps/dashboard/package-lock.json
+   ?? apps/dashboard/package.json
+   ?? apps/dashboard/postcss.config.js
+   ?? apps/dashboard/proxy.js
+   ?? apps/dashboard/scripts/
+   ?? apps/dashboard/styles/
+   ?? apps/dashboard/tailwind.config.js
+   ?? apps/dashboard/test/
+   ?? apps/dashboard/tsconfig.json
+   ?? db/migrations/005_lifecycle.sql
+   ?? db/migrations/006_analysis_jobs.sql
+   ?? docs/openapi.yaml
+   ?? docs/runbook.md
+   ?? docs/threat-model.md
+   ?? scripts/build-dashboard.ps1
+   ?? scripts/diagnose.ps1
+   ?? scripts/start-lab.ps1
+   ?? scripts/verify-all.ps1
+   ?? scripts/verify-features.ps1
+   ?? scripts/watch-stream.ps1
+   ?? services/api/analysis.go
+   ?? services/api/analysis_model.go
+   ?? services/api/analysis_model_tls_test.go
+   ?? services/api/hardening_test.go
+   ?? services/api/hub.go
+   ?? services/api/lifecycle.go
+   ?? services/api/lifecycle_test.go
+   ?? services/api/ratelimit.go
+   ?? services/api/realtime_test.go
+   ?? services/api/web.go
+   ?? services/api/web/
+   ?? services/api/web_test.go
+   ?? tests/e2e/live-api.mjs
+   ?? tests/load/
+> size of the changes
+   git : warning: in the working copy of '.env.example', LF will be 
+   replaced by CRLF the next time Git touches it
+   At D:\Projects\aegis-nexus-ai\scripts\diagnose.ps1:110 char:31
+   +   Run "size of the changes" { git diff --stat HEAD } 40
+   +                               ~~~~~~~~~~~~~~~~~~~~
+       + CategoryInfo          : NotSpecified: (warning: in the... Gi 
+      t touches it:String) [], RemoteException
+       + FullyQualifiedErrorId : NativeCommandError
+    
+   warning: in the working copy of '.github/workflows/ci.yml', LF 
+   will be replaced by CRLF the next time Git touches it
+   warning: in the working copy of '.gitignore', LF will be replaced 
+   by CRLF the next time Git touches it
+   warning: in the working copy of 'PROGRESS.md', LF will be replaced 
+   by CRLF the next time Git touches it
+   warning: in the working copy of 'README.md', LF will be replaced 
+   by CRLF the next time Git touches it
+   warning: in the working copy of 'deploy/docker-compose.yml', LF 
+   will be replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'docs/limitations.md', LF will be 
+   replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'scripts/verify-backend.ps1', LF 
+   will be replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'services/api/agents.go', LF will 
+   be replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'services/api/events.go', LF will 
+   be replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'services/api/incidents.go', LF 
+   will be replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'services/api/main.go', LF will be 
+   replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'services/api/rules.go', LF will 
+   be replaced by CRLF the next time Git touches it
+   warning: in the working copy of 'services/api/server.go', LF will 
+   be replaced by CRLF the next time Git touches it
+    .env.example               |  8 +++++-
+    .github/workflows/ci.yml   | 69 +++++++++++++++++++++++++++++++++++++++++++++-
+    .gitignore                 |  2 ++
+    PROGRESS.md                | 23 ++++++++++------
+    README.md                  |  4 +++
+   ... (10 more lines)
+> stashes
+
+=== 8. FILES MODIFIED IN THE LAST 72 HOURS (outside node_modules/.git) ===
+   11-22 19:21  .\scripts\diagnose.ps1
+   11-22 18:13  .local-verification\lab\db\pg_stat\pgstat.stat
+   11-22 18:13  .local-verification\lab\db\global\pg_control
+   11-22 18:13  .local-verification\lab\db\pg_wal\000000010000000000000003
+   11-22 18:13  .local-verification\lab\db\base\16648\16786
+   11-22 18:13  .local-verification\lab\db\base\16648\16763
+   11-22 18:13  .local-verification\lab\db\pg_subtrans\0000
+   11-22 18:13  .local-verification\lab\db\pg_xact\0000
+   11-22 18:13  .local-verification\lab\db\pg_logical\replorigin_checkpoint
+   11-22 18:12  .local-verification\lab\db\base\16648\16686
+   11-22 18:12  .local-verification\lab\db\base\16648\16907
+   11-22 18:12  .local-verification\lab\db\base\16648\16794
+   11-22 18:12  .local-verification\lab\db\base\16648\16785
+   11-22 18:12  .local-verification\lab\db\base\16648\16852
+   11-22 18:12  .local-verification\lab\db\base\16648\16773
+   11-22 18:12  .local-verification\lab\db\base\16648\16901
+   11-22 18:12  .local-verification\lab\db\base\16648\16713
+   11-22 18:12  .local-verification\lab\db\base\16648\16860
+   11-22 18:12  .local-verification\lab\db\base\16648\16851
+   11-22 18:12  .local-verification\lab\db\base\16648\16695
+   11-22 18:12  .local-verification\lab\db\global\pg_internal.init
+   11-22 18:12  .local-verification\lab\db\base\16648\pg_internal.init
+   11-22 18:12  .local-verification\lab\db\pg_multixact\members\0000
+   11-22 18:12  .local-verification\lab\db\pg_multixact\offsets\0000
+   11-22 18:12  .local-verification\lab\db\postmaster.opts
+   11-22 18:12  .local-verification\lab\db\global\config_exec_params
+   11-22 17:59  .env
+   11-22 17:36  .\PROGRESS.md
+   11-22 17:36  .\docs\runbook.md
+   11-22 17:34  .\apps\dashboard\scripts\verify-https.mjs
+   11-22 17:34  .\services\api\analysis_model_tls_test.go
+   11-22 17:33  .\services\api\analysis_model.go
+   11-22 17:32  .\scripts\start-lab.ps1
+   11-22 16:41  .local-verification\lab\db\base\16648\16931
+   11-22 16:41  .local-verification\lab\db\base\16648\16918
+   11-22 16:41  .local-verification\lab\db\base\16648\16908
+   11-22 16:40  .local-verification\lab\db\base\16648\16930
+   11-22 16:40  .local-verification\lab\db\base\5\2619
+   11-22 16:40  .local-verification\lab\db\base\5\1259
+   11-22 16:40  .local-verification\lab\db\base\5\2696
+   11-22 16:40  .local-verification\lab\db\base\5\16464_vm
+   11-22 16:40  .local-verification\lab\db\base\5\16464
+   11-22 16:40  .local-verification\lab\db\base\5\16448_vm
+   11-22 16:40  .local-verification\lab\db\base\16648\2619
+   11-22 16:40  .local-verification\lab\db\base\5\16448
+   11-22 16:40  .local-verification\lab\db\base\5\16457
+   11-22 16:40  .local-verification\lab\db\base\16648\2696
+   11-22 16:40  .local-verification\lab\db\base\16648\2840
+   11-22 16:40  .local-verification\lab\db\base\16648\2841
+   11-22 16:40  .local-verification\lab\db\base\16648\2840_fsm
+   11-22 16:40  .local-verification\lab\db\base\16648\1259
+   11-22 16:40  .local-verification\lab\db\base\16648\2619_fsm
+   11-22 16:40  .local-verification\lab\db\base\5\16448_fsm
+   11-22 16:39  .local-verification\preview-postgres.log
+   11-22 16:39  .local-verification\lab\db\base\5\16464_fsm
+   11-22 16:38  .local-verification\lab\db\base\5\2619_fsm
+   11-22 16:38  .local-verification\lab\db\base\16648\2619_vm
+   11-22 16:38  .local-verification\lab\db\base\16648\2608
+   11-22 16:38  .local-verification\lab\db\base\16648\1249
+   11-22 16:11  .local-verification\npm-cache\_logs\2026-11-22T11_11_42_523Z-debug-0.log
+   11-22 16:11  .local-verification\yaml-check\package.json
+   11-22 16:11  .local-verification\yaml-check\package-lock.json
+   11-22 16:11  .local-verification\npm-cache\_cacache\content-v2\sha512\dc\dc\4df3eefc39dcdb4fb0bf5a31acc9f3c0b4968ddc5343b16c6fed8ee6703b13fe83a6816f01a72410145067bd91378fd63649dcf550b14b7b32fb11bdb217
+   11-22 16:11  .local-verification\npm-cache\_cacache\index-v5\19\96\18c1b0e01d0a3ce4d12b426215b61d28bfe286f7cb2b7c4762165dc80785
+   11-22 16:11  .local-verification\npm-cache\_cacache\index-v5\99\aa\125ade68f9bca1d65a843c2aab353f720ddf9eee7f97db630d6de39132d0
+   11-22 16:11  .local-verification\npm-cache\_cacache\content-v2\sha512\5c\05\b6ef988375918c7dd14dd1aad3ca102ea8ef8d641634fd58c23e20b7183b7428188793362582c3e4a24891361ee1ef45626118789dc9b7730dae500485a4
+   11-22 16:10  .local-verification\lab\restore\pg_stat\pgstat.stat
+   11-22 16:10  .local-verification\lab\restore\global\pg_control
+   11-22 16:10  .local-verification\lab\restore\pg_wal\000000010000000000000005
+   11-22 16:10  .local-verification\lab\restore\pg_subtrans\0001
+
+=== 9. YOUR FILES COMPARED WITH THE FILES I DELIVERED ===
+   identical to what I delivered: 54 of 73
+   MODIFIED (15):
+      .github/workflows/ci.yml
+      apps/dashboard/.gitignore
+      apps/dashboard/components/IncidentDetailView.tsx
+      apps/dashboard/lib/api.ts
+      apps/dashboard/next-env.d.ts
+      apps/dashboard/package.json
+      apps/dashboard/tailwind.config.js
+      apps/dashboard/tsconfig.json
+      deploy/docker-compose.yml
+      scripts/build-dashboard.ps1
+      scripts/verify-all.ps1
+      scripts/verify-features.ps1
+      services/api/main.go
+      services/api/server.go
+      services/api/web.go
+   MISSING (4):
+      apps/dashboard/next.config.js
+      apps/dashboard/pages/_app.tsx
+      apps/dashboard/pages/_document.tsx
+      apps/dashboard/pages/index.tsx
+   (scripts\verify-*.ps1 may differ on purpose: you changed a test count. .gitkeep files do not matter.)
+   EXTRA files I never delivered (22) - these are the ones to look at:
+      services/api/analysis.go
+      services/api/analysis_model.go
+      services/api/analysis_model_tls_test.go
+      services/api/hardening_test.go
+      services/api/ratelimit.go
+      db/migrations/006_analysis_jobs.sql
+      apps/dashboard/.env.example
+      apps/dashboard/.env.local
+      apps/dashboard/next.config.mjs
+      apps/dashboard/proxy.js
+      apps/dashboard/README.md
+      apps/dashboard/app/dashboard.tsx
+      apps/dashboard/app/globals.css
+      apps/dashboard/app/layout.jsx
+      apps/dashboard/app/page.jsx
+      apps/dashboard/lib/gateway.mjs
+      apps/dashboard/lib/live.mjs
+      apps/dashboard/scripts/smoke.mjs
+      apps/dashboard/scripts/test-production.mjs
+      apps/dashboard/scripts/verify-https.mjs
+      apps/dashboard/test/gateway.test.mjs
+      apps/dashboard/test/live.test.mjs
+
+=== 10. STACK CHECK AGAINST THE PDF (Go + PostgreSQL + Next.js/TypeScript/Tailwind) ===
+> go.mod
+   module github.com/yourname/aegis-nexus-ai
+   
+   go 1.26.0
+   
+   require (
+   	github.com/jackc/pgx/v5 v5.13.0
+   	golang.org/x/crypto v0.59.0
+   )
+   
+   require (
+   	github.com/jackc/pgpassfile v1.0.0 // indirect
+   	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+   	github.com/jackc/puddle/v2 v2.2.3 // indirect
+   	golang.org/x/sync v0.25.0 // indirect
+   	golang.org/x/text v0.44.0 // indirect
+   )
+   Go: no drift found (no gin/gorm/fiber/echo/sqlite/mongo/redis)
+   dashboard dependencies: next, react, react-dom, @types/node, @types/react, @types/react-dom, autoprefixer, playwright, postcss, tailwindcss, typescript
+   other top-level folders: .local-verification
+
+=== 11. BUILD AND TESTS ===
+> go build ./...
+> go vet ./...
+> go test ./... (about 30 seconds; needs the database for the integration tests)
+   ok  	github.com/yourname/aegis-nexus-ai/agents/endpoint	4.814s
+   ?   	github.com/yourname/aegis-nexus-ai/cmd/seed	[no test files]
+   ok  	github.com/yourname/aegis-nexus-ai/services/api	2.154s
+   skipped tests: 0 (skips mean the database was not reachable)
+
+=== DONE ===
+Passwords and tokens in this report are masked. Send me the file diagnostic-report.txt

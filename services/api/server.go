@@ -17,6 +17,7 @@ type Server struct {
 	secureCookie bool
 	dummyHash    []byte
 	ioc          iocSet
+	hub          *hub
 }
 
 type ctxKey struct{}
@@ -55,7 +56,19 @@ func (s *Server) routes() http.Handler {
 	// Block 4: incidents (read-only for now)
 	mux.HandleFunc("GET /v1/incidents", s.requireAuth(s.handleListIncidents))
 	mux.HandleFunc("GET /v1/incidents/{id}", s.requireAuth(s.handleGetIncident))
-	return mux
+
+	// Block 5: lifecycle, approvals, real-time stream
+	mux.HandleFunc("PATCH /v1/incidents/{id}", s.requireAuth(s.handlePatchIncident))
+	mux.HandleFunc("POST /v1/incidents/{id}/approvals", s.requireAuth(s.handleRequestApproval))
+	mux.HandleFunc("POST /v1/approvals/{id}/decision", s.requireRole(s.handleDecideApproval, "admin"))
+	mux.HandleFunc("GET /v1/stream", s.requireAuth(s.handleStream))
+
+	mux.HandleFunc("POST /v1/incidents/{id}/analyse", s.requireRole(s.handleAnalyse, "admin", "analyst"))
+	mux.HandleFunc("GET /v1/incidents/{id}/analysis/{job}", s.requireRole(s.handleAnalysisResult, "admin", "analyst"))
+
+	// Block 6: dashboard
+	s.routeWeb(mux)
+	return secureHeaders(mux)
 }
 
 func (s *Server) handleHealthz(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +100,10 @@ func (s *Server) audit(ctx context.Context, tenantID, actor, action, target, res
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if !originOK(r) {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "cross-origin request refused"})
+		return
+	}
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "use POST"})
 		return
@@ -133,6 +150,10 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
+	if !originOK(r) {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "cross-origin request refused"})
+		return
+	}
 	http.SetCookie(w, &http.Cookie{Name: cookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true})
 	writeJSON(w, http.StatusOK, map[string]string{"status": "logged out"})
 }
@@ -145,6 +166,10 @@ func sessionFrom(r *http.Request) Session {
 // requireAuth: no valid signed, unexpired cookie = 401. Tenant and role come ONLY from the cookie.
 func (s *Server) requireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !originOK(r) {
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": "cross-origin request refused"})
+			return
+		}
 		c, err := r.Cookie(cookieName)
 		if err != nil {
 			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthenticated"})

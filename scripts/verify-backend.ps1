@@ -67,7 +67,7 @@ Chk "go vet (static checks)" ($LASTEXITCODE -eq 0) "run: go vet ./...  and read 
 $tv = & go test ./services/api/ -count=1 -v 2>&1 | Out-String
 Chk "go test passes" ($tv -match '(?m)^ok\s') "run: go test ./services/api/ -v"
 $np = ([regex]::Matches($tv, '--- PASS')).Count
-Chk "at least 15 tests passed ($np found)" ($np -ge 15) "some tests are missing"
+Chk "at least 51 tests passed ($np found)" ($np -ge 51) "some tests are missing"
 Chk "no tests were skipped (DB tests really ran)" ($tv -notmatch '--- SKIP') "start the database and rerun"
 Chk "no test failed" ($tv -notmatch '--- FAIL') "run go test ./services/api/ -v"
 

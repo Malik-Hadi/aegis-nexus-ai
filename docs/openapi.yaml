@@ -1,0 +1,188 @@
+openapi: 3.1.0
+info:
+  title: AEGIS NEXUS AI Lab API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+    description: Loopback development only
+security:
+  - session: []
+paths:
+  /healthz:
+    get:
+      security: []
+      responses:
+        '200': { description: API running }
+  /readyz:
+    get:
+      security: []
+      responses:
+        '200': { description: Database ready }
+        '503': { description: Database unavailable }
+  /v1/auth/login:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tenant_id, subject, password]
+              properties:
+                tenant_id: { type: string, format: uuid }
+                subject: { type: string }
+                password: { type: string, format: password }
+      responses:
+        '200': { description: Authenticated and session cookie set }
+        '401': { description: Invalid credentials }
+  /v1/me:
+    get:
+      responses:
+        '200': { description: Authenticated subject, role and tenant }
+        '401': { description: Unauthenticated }
+  /v1/admin/enrolment-tokens:
+    post:
+      responses:
+        '201': { description: One-time lab enrolment token }
+        '403': { description: Admin required }
+  /v1/agents/enrol:
+    post:
+      security: []
+      responses:
+        '201': { description: Agent credential issued against an enrolment token }
+  /v1/agents/heartbeat:
+    post:
+      security:
+        - agent: []
+      responses:
+        '200': { description: Heartbeat recorded }
+  /v1/agents:
+    get:
+      responses:
+        '200': { description: Current tenant agents }
+  /v1/agents/{id}/revoke:
+    parameters:
+      - $ref: '#/components/parameters/ID'
+    post:
+      responses:
+        '200': { description: Agent revoked }
+        '403': { description: Admin required }
+  /v1/events:
+    post:
+      security:
+        - agent: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, occurred_at, idempotency_key]
+              properties:
+                kind: { type: string }
+                occurred_at: { type: string, format: date-time }
+                severity: { enum: [info, low, medium, high, critical] }
+                payload: { type: object }
+                source_ref: { type: string, maxLength: 128 }
+                idempotency_key: { type: string, maxLength: 128 }
+      responses:
+        '202': { description: Event accepted or previously accepted with the same scoped key }
+        '400': { description: Invalid event }
+        '429': { description: Ingest limit exceeded }
+    get:
+      responses:
+        '200': { description: Paginated events in the current tenant }
+  /v1/incidents:
+    get:
+      responses:
+        '200': { description: Filtered incident list in the current tenant }
+  /v1/incidents/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ID'
+    get:
+      responses:
+        '200': { description: Incident, evidence, alerts, approvals and audit trail }
+        '404': { description: Incident unavailable in the current tenant }
+    patch:
+      responses:
+        '200': { description: Assignment or permitted lifecycle transition recorded }
+  /v1/incidents/{id}/analyse:
+    parameters:
+      - $ref: '#/components/parameters/ID'
+    post:
+      responses:
+        '202':
+          description: Accepted analysis request or reused active job
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [job_id]
+                properties:
+                  job_id: { type: string, format: uuid }
+        '404': { description: Incident unavailable in the current tenant }
+  /v1/incidents/{id}/analysis/{job}:
+    parameters:
+      - $ref: '#/components/parameters/ID'
+      - name: job
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      responses:
+        '200':
+          description: Current job status. A result is present when completed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, result]
+                properties:
+                  status: { enum: [queued, running, completed, failed] }
+                  result:
+                    type: [object, 'null']
+                    properties:
+                      mode: { enum: [offline, adapter] }
+                      summary: { type: string }
+                      confidence: { enum: [low, medium, high] }
+                      referenced_event_ids: { type: array, items: { type: string, format: uuid } }
+                      proposed_next_steps: { type: array, items: { type: string } }
+        '404': { description: Job unavailable in the current tenant }
+  /v1/incidents/{id}/approvals:
+    parameters:
+      - $ref: '#/components/parameters/ID'
+    post:
+      responses:
+        '201': { description: Simulated response request recorded as pending }
+  /v1/approvals/{id}/decision:
+    parameters:
+      - $ref: '#/components/parameters/ID'
+    post:
+      responses:
+        '200': { description: Decision recorded by an eligible admin }
+        '403': { description: The caller cannot decide this request }
+  /v1/stream:
+    get:
+      responses:
+        '200':
+          description: Current tenant event notifications until disconnection or expiry
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '401': { description: Unauthenticated }
+components:
+  parameters:
+    ID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: aegis_session
+    agent:
+      type: http
+      scheme: bearer

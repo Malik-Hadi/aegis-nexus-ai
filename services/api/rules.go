@@ -258,6 +258,9 @@ func (s *Server) raise(ctx context.Context, tenantID, agentID, eventID string, d
 	}
 	if created {
 		s.audit(ctx, tenantID, "system:"+d.ruleID, "incident.created", incID, "success")
+		s.hub.publish(tenantID, "incident.created", map[string]any{"id": incID, "rule_id": d.ruleID, "severity": d.severity, "title": d.title})
+	} else {
+		s.hub.publish(tenantID, "incident.updated", map[string]any{"id": incID, "rule_id": d.ruleID})
 	}
 	return nil
 }

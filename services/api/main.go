@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -44,7 +46,22 @@ func main() {
 
 	addr := os.Getenv("API_ADDR")
 	if addr == "" {
-		addr = ":8080"
+		addr = "127.0.0.1:8080"
+	}
+	certFile, keyFile := os.Getenv("API_TLS_CERT"), os.Getenv("API_TLS_KEY")
+	if (certFile == "") != (keyFile == "") {
+		log.Fatal("set both API_TLS_CERT and API_TLS_KEY")
+	}
+	if certFile == "" {
+		host, port, err := net.SplitHostPort(addr)
+		if err == nil && host == "" {
+			addr = net.JoinHostPort("127.0.0.1", port)
+			host = "127.0.0.1"
+		}
+		ip := net.ParseIP(host)
+		if err != nil || (host != "localhost" && !ip.IsLoopback()) {
+			log.Fatal("plain HTTP is restricted to the loopback lab; set API_TLS_CERT and API_TLS_KEY")
+		}
 	}
 	secret := os.Getenv("SESSION_SECRET")
 	if len(secret) < 32 {
@@ -67,8 +84,9 @@ func main() {
 	srv := &Server{
 		pool:         pool,
 		secret:       []byte(secret),
-		secureCookie: os.Getenv("COOKIE_SECURE") == "true",
+		secureCookie: certFile != "" || os.Getenv("COOKIE_SECURE") == "true",
 		dummyHash:    dummy,
+		hub:          newHub(),
 	}
 
 	iocPath := os.Getenv("IOC_FILE")
@@ -81,7 +99,20 @@ func main() {
 	}
 	srv.ioc = ioc
 	go srv.monitorHeartbeats(context.Background())
+	go srv.runAnalysisJobs(context.Background())
 
 	log.Printf("AEGIS API listening on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, srv.routes()))
+	httpSrv := &http.Server{
+		Addr:              addr,
+		Handler:           limitRequests(srv.routes()),
+		TLSConfig:         &tls.Config{MinVersion: tls.VersionTLS12},
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 16,
+	}
+	if certFile != "" {
+		log.Fatal(httpSrv.ListenAndServeTLS(certFile, keyFile))
+	}
+	log.Fatal(httpSrv.ListenAndServe())
 }

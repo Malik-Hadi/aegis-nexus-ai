@@ -120,6 +120,7 @@ func (s *Server) handleIngest(w http.ResponseWriter, r *http.Request) {
 		`UPDATE agents SET last_seen_at = now() WHERE id = $1::text::uuid AND tenant_id = $2::text::uuid`, a.ID, a.TenantID)
 	ectx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	s.hub.publish(a.TenantID, "event.new", map[string]any{"id": id, "kind": c.kind, "severity": c.severity, "agent_id": a.ID})
 	s.evaluate(ectx, a.TenantID, a.ID, id, c)
 	writeJSON(w, http.StatusAccepted, map[string]string{"status": "accepted", "event_id": id})
 }

@@ -166,5 +166,10 @@ func (s *Server) handleGetIncident(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "server error"})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"incident": inc, "events": events, "alerts": alerts})
+	approvals, trail, err := s.loadApprovalsAndAudit(r.Context(), sess.TenantID, id)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "server error"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"incident": inc, "events": events, "alerts": alerts, "approvals": approvals, "audit_trail": trail})
 }
