@@ -21,8 +21,11 @@ Go tests: PASS
 Verify-all: RESULT: 76 passed, 0 failed
 
 ## Known limitations
-- Local HTTP only (no TLS). Compose covers the database only.
+- TLS is terminated by a lab reverse proxy (cmd/tlsproxy, self-signed cert, TLS 1.2+) at https://localhost:8443. The API itself listens on plain HTTP over loopback. Lab only: no CA-issued certificate and no end-to-end TLS. Compose covers the database only.
 - AT-11 load test and AT-13 Playwright not completed.
 - AT-08/AT-10 and live-stream behaviour not yet shown in the browser.
 - Lab MVP only. Not enterprise ready and not independently penetration tested.
+
+
+| TLS | LAB PASS | HTTPS via cmd/tlsproxy; negotiated protocol recorded in docs\evidence\tls-version-20261122-2346.txt; not production TLS |
 
