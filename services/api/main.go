@@ -104,7 +104,7 @@ func main() {
 	log.Printf("AEGIS API listening on %s", addr)
 	httpSrv := &http.Server{
 		Addr:              addr,
-		Handler:           limitRequests(srv.routes()),
+		Handler:           srv.inspectRequests(os.Getenv("INSPECT_MODE"), limitRequests(srv.routes())),
 		TLSConfig:         &tls.Config{MinVersion: tls.VersionTLS12},
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,

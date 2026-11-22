@@ -1,0 +1,9 @@
+.git
+.env
+**/node_modules
+**/.next
+.local-verification
+docs/evidence
+*.exe
+*-state.json
+*-queue.jsonl

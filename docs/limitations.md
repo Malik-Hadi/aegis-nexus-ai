@@ -33,3 +33,5 @@
 - AT-12 backup/restore: PASS. pg_dump custom-format backup restored into a fresh database with pg_restore --exit-on-error; record counts (events,incidents,audit_logs) matched: 38,6,1273.
 
 - DET-003 benign fixture alerted once when reusing the positive fixture's source IP within the 5-minute window (test isolation, not a rule flaw). Retest with a unique IP: PASS (3 events stored, 0 alerts, unique source IP)
+
+- Inbound request inspection (INSPECT_MODE=block|monitor|off) checks the URL, query string and User-Agent for known attack patterns and scanner tools. It does not inspect request bodies, never bans loopback peers (a local gateway fronts many users), and detects known patterns only. Blocked requests are recorded in audit_logs as security.inspect and are not yet shown in the console.

@@ -1,0 +1,14 @@
+# Next.js SOC console (production build). Built from the repo root.
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY apps/dashboard/package.json apps/dashboard/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY apps/dashboard ./
+RUN npm run build
+
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app ./
+USER node
+CMD ["node", "node_modules/next/dist/bin/next", "start", "--hostname", "0.0.0.0"]
