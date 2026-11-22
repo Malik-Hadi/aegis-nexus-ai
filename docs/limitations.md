@@ -29,3 +29,5 @@
 - AT-11 load test: NOT MEASURED. k6 was run through Docker, but the container could not reach the API on the Windows host (connection refused on all 30010 requests), so the run is invalid. The script tests/load/ingest.js is provided. Rerun with k6 installed natively on the host to obtain real figures.
 
 - AT-12 backup/restore: PASS. Restored dump record counts matched the source database (events, incidents, audit_logs).
+
+- AT-12 backup/restore: PASS. pg_dump custom-format backup restored into a fresh database with pg_restore --exit-on-error; record counts (events,incidents,audit_logs) matched: 38,6,1273.
