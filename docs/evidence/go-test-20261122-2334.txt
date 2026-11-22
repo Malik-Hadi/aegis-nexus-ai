@@ -1,0 +1,4 @@
+﻿ok  	github.com/yourname/aegis-nexus-ai/agents/endpoint	(cached)
+?   	github.com/yourname/aegis-nexus-ai/cmd/seed	[no test files]
+ok  	github.com/yourname/aegis-nexus-ai/services/api	5.763s
+

@@ -1,0 +1,233 @@
+﻿Host: MALIKS-DEVICE | go version go1.27.4 windows/amd64 | Run: 2026-11-22T23:34:25.3196515+05:00
+
+==================== verify-backend.ps1 ====================
+
+--- 1. CODE QUALITY ---
+PASS  go build
+PASS  go vet (static checks)
+PASS  go test passes
+PASS  at least 51 tests passed (56 found)
+PASS  no tests were skipped (DB tests really ran)
+PASS  no test failed
+
+--- 2. DATABASE ---
+PASS  db container healthy
+PASS  12 tables exist (10 core + enrolment_tokens)
+PASS  2 lab tenants seeded
+PASS  events table has idempotency uniqueness
+
+--- 3. API IS UP ---
+PASS  GET /healthz = 200
+PASS  GET /readyz = 200 and database up
+
+--- 4. LAB USERS (resets the 4 lab passwords) ---
+PASS  seed created 4 users
+PASS  passwords stored as bcrypt hashes
+
+--- 5. AUTHENTICATION AND ROLES (AT-02) ---
+PASS  anonymous GET /v1/me = 401
+PASS  anonymous GET /v1/events = 401
+PASS  anonymous GET /v1/agents = 401
+PASS  anonymous admin route = 401
+PASS  wrong password = 401
+PASS  unknown user = 401
+PASS  unknown tenant = 401
+PASS  bad tenant id format = 401
+PASS  GET on login route is refused
+PASS  analyst-a login = 200
+PASS  admin-a login = 200
+PASS  admin-b login = 200
+PASS  analyst-b login = 200
+PASS  /v1/me shows analyst role and tenant A
+PASS  analyst on admin route = 403
+PASS  admin on admin route = 200
+PASS  analyst cannot create enrolment token = 403
+PASS  session cookie is set
+PASS  cookie is HttpOnly
+PASS  tampered cookie = 401
+
+--- 6. AGENT ENROLMENT, INGESTION, VALIDATION (Block 2) ---
+PASS  admin creates enrolment token = 201
+PASS  token is 64 characters
+PASS  bad hostname rejected = 400
+PASS  bad os rejected = 400
+PASS  fake token = 401
+PASS  enrol with real token = 201
+PASS  same token cannot be used twice = 401
+PASS  agent secret is NOT stored in the database
+PASS  valid event = 202
+PASS  response says accepted
+PASS  same idempotency key = 202 duplicate
+PASS  exactly 1 stored for that key
+PASS  invalid kind = 400
+PASS  SQL-injection style kind = 400
+PASS  future timestamp = 400
+PASS  very old timestamp = 400
+PASS  payload over 16 KB = 400
+PASS  body over 64 KB = 413
+PASS  SQL text inside payload is stored harmlessly
+PASS  events table still exists after injection attempt
+PASS  event with no credential = 401
+PASS  wrong agent secret = 401
+PASS  browser cookie cannot post events = 401
+PASS  heartbeat = 200
+PASS  last_seen_at was updated
+
+--- 7. READING DATA AND PAGINATION ---
+PASS  analyst-a reads events = 200 and sees the new event
+PASS  limit=1 returns exactly 1 event
+PASS  limit=0 = 400
+PASS  limit=500 = 400
+PASS  offset=-1 = 400
+PASS  kind filter works
+PASS  analyst-a lists agents and sees the new agent
+PASS  agent list never exposes credential hashes
+
+--- 8. TENANT ISOLATION (AT-03) ---
+PASS  tenant B reads events = 200
+PASS  tenant B does NOT see tenant A events
+PASS  tenant B does NOT see tenant A agents
+PASS  tenant B admin cannot revoke tenant A agent = 404
+PASS  tenant A agent is still active after the attempt
+PASS  revoke of unknown id = 404
+PASS  revoke of malformed id = 404
+PASS  tenant B can enrol its own agent
+PASS  tenant B agent event accepted
+PASS  tenant A analyst does NOT see tenant B agent events
+PASS  event stored under tenant B in the database
+
+--- 9. REVOCATION (AT-06) ---
+PASS  analyst cannot revoke = 403
+PASS  agent still works before admin revokes
+PASS  admin revokes own tenant agent = 200
+PASS  revoked agent event = 401
+PASS  revoked agent heartbeat = 401
+PASS  agent list shows status revoked
+
+--- 10. AUDIT LOG ---
+PASS  audit has 'auth.login' entries
+PASS  audit has 'authz.denied' entries
+PASS  audit has 'agent.enrol' entries
+PASS  audit has 'agent.revoke' entries
+PASS  audit has 'agent.rejected' entries
+PASS  audit has 'enrolment.token_created' entries
+PASS  failed logins are audited
+PASS  audit log cannot be edited (append-only)
+PASS  audit log cannot be deleted
+
+--- 11. PERSISTENCE AFTER RESTART (AT-05) ---
+Restarting the database container (about 15 seconds)...
+PASS  API reports ready again after DB restart
+PASS  all 179 events survived the restart
+PASS  events still readable through the API
+
+--- CLEANUP ---
+Removed the verify-* test agents and their events (audit log rows stay, by design).
+
+RESULT: 96 passed, 0 failed
+>> verify-backend.ps1 finished with 0 failed check(s)
+
+==================== verify-features.ps1 ====================
+
+--- 0. PRECONDITIONS ---
+PASS  API is up
+PASS  database healthy
+PASS  lab users created
+PASS  admin-a, analyst-a and admin-b can log in
+
+--- BLOCK 3: GO AGENT (Windows + Linux) ---
+PASS  agent unit tests pass
+PASS  Linux agent builds
+PASS  Windows agent builds
+PASS  agent enrols with a one-time token
+PASS  credential file is not tracked by Git
+PASS  the same token cannot enrol a second agent
+PASS  agent replays the DET-001 fixture (6 sent)
+PASS  agent heartbeat is accepted
+PASS  agent last_seen_at is updated
+      (offline test: the agent retries with backoff, this takes about 10 seconds)
+PASS  server down: event is queued, not lost
+PASS  server back: queued event is delivered
+PASS  admin revokes the agent
+PASS  revoked agent stops with 'credential rejected'
+
+--- BLOCK 4: DETECTION RULES (live, through the real API) ---
+PASS  rules test agent enrolled
+PASS  DET-001: 5 failed logins do NOT create an incident
+PASS  DET-001: the 6th failed login creates ONE high incident
+PASS  DET-001: incident links all 6 evidence events
+PASS  DET-001: a 7th failure joins the same incident (deduplicated)
+PASS  DET-002: normal group does not alert
+PASS  DET-002: privileged group creates a high incident
+PASS  DET-003: 10 failures to ONE port is not a scan
+PASS  DET-003: 10 failures to many ports creates a medium incident
+PASS  DET-004: unknown hash does not alert
+PASS  DET-004: IOC hash alerts (high)
+PASS  tenant B cannot see these incidents
+      (DET-005 test: the background monitor runs every 30 seconds, waiting up to 45 s...)
+PASS  DET-005: silent agent raises a medium incident by itself (22 s)
+PASS  DET-005: still ONE incident and ONE alert after another check
+
+--- BLOCK 5: LIFECYCLE, APPROVALS, AUDIT (and who may do what) ---
+PASS  found the DET-001 incident
+PASS  detail returns incident, evidence events, alerts, approvals and audit trail
+PASS  tenant B gets 404 for the incident
+PASS  tenant B cannot change it (404)
+PASS  analysis accepted as a persisted job
+PASS  tenant B cannot read the analysis job
+PASS  analysis completed and cites incident evidence only
+PASS  invalid status = 400
+PASS  analyst: open -> investigating = 200
+PASS  same status again = 409
+PASS  investigating -> closed is not allowed = 409
+PASS  analyst assigns the incident to self = 200
+PASS  owner is stored
+PASS  analyst requests simulated isolation = 201 (pending)
+PASS  unknown action refused = 400
+PASS  second pending request refused = 409
+PASS  nothing executed while pending (AT-10)
+PASS  analyst cannot approve = 403
+PASS  other tenant cannot approve = 404
+PASS  admin DENIES = 200
+PASS  denied request changed nothing (AT-10)
+PASS  a decided request cannot be decided again = 409
+PASS  admin APPROVES = 200 with a SIMULATION note
+PASS  approved request records exactly one simulated execution
+PASS  requester cannot approve their OWN request = 403
+PASS  analyst: investigating -> resolved = 200
+PASS  analyst cannot close = 403
+PASS  admin closes = 200
+PASS  closed incident is final = 409
+PASS  AT-08: 3 status changes recorded with who and when
+PASS  denied attempts are audited
+
+--- REAL-TIME: live stream (Server-Sent Events) ---
+PASS  analyst-a opens the live stream
+PASS  analyst-b (other tenant) opens its own stream
+PASS  a new event reaches the analyst's browser feed live (29 ms)
+PASS  a new incident is pushed live (31 ms)
+PASS  tenant B stream received NOTHING from tenant A
+PASS  heartbeats are pushed live
+PASS  a stream without a login is refused (401)
+
+--- BLOCK 6: NEXT.JS DASHBOARD AND WEB SECURITY ---
+PASS  Next.js dashboard source exists
+PASS Next.js page and security headers
+PASS authentication required for profile and live stream
+PASS foreign Origin rejected
+PASS  Next.js dashboard serves the UI and protects its API
+PASS  dashboard source displays telemetry without raw HTML injection
+PASS  login from a foreign origin is refused (CSRF defence)
+PASS  login from the dashboard's own origin works
+PASS  state-changing call with a foreign Origin is refused
+PASS  API responses are never cached
+      Open http://localhost:3000/ in your browser for the manual click-through (see the checklist).
+
+--- CLEANUP ---
+Removed verify-* agents, their events and test incidents (audit log rows stay, by design).
+
+RESULT: 76 passed, 0 failed
+>> verify-features.ps1 finished with 0 failed check(s)
+
+ALL CHECKS PASSED. Safe to move to the next block.
+

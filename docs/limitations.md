@@ -31,3 +31,5 @@
 - AT-12 backup/restore: PASS. Restored dump record counts matched the source database (events, incidents, audit_logs).
 
 - AT-12 backup/restore: PASS. pg_dump custom-format backup restored into a fresh database with pg_restore --exit-on-error; record counts (events,incidents,audit_logs) matched: 38,6,1273.
+
+- DET-003 benign fixture alerted once when reusing the positive fixture's source IP within the 5-minute window (test isolation, not a rule flaw). Retest with a unique IP: PASS (3 events stored, 0 alerts, unique source IP)
