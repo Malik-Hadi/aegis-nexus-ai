@@ -1,0 +1,115 @@
+﻿=== RUN   TestAnalysisAdapterHTTPS
+--- PASS: TestAnalysisAdapterHTTPS (0.02s)
+=== RUN   TestAnonymousGets401
+--- PASS: TestAnonymousGets401 (0.00s)
+=== RUN   TestAnalystOnAdminRouteGets403
+--- PASS: TestAnalystOnAdminRouteGets403 (0.00s)
+=== RUN   TestAnalystCanUseNormalRoute
+--- PASS: TestAnalystCanUseNormalRoute (0.00s)
+=== RUN   TestAdminGetsAdminRoute
+--- PASS: TestAdminGetsAdminRoute (0.00s)
+=== RUN   TestExpiredCookieGets401
+--- PASS: TestExpiredCookieGets401 (0.00s)
+=== RUN   TestWrongSecretGets401
+--- PASS: TestWrongSecretGets401 (0.00s)
+=== RUN   TestForgedRoleGets401
+--- PASS: TestForgedRoleGets401 (0.00s)
+=== RUN   TestValidateEvent
+--- PASS: TestValidateEvent (0.00s)
+=== RUN   TestParseAgentCredential
+--- PASS: TestParseAgentCredential (0.00s)
+=== RUN   TestIngestWithoutValidCredentialGets401
+--- PASS: TestIngestWithoutValidCredentialGets401 (0.00s)
+=== RUN   TestAnonymousCannotReadEventsOrAgents
+--- PASS: TestAnonymousCannotReadEventsOrAgents (0.00s)
+=== RUN   TestAnalystCannotRevokeOrCreateEnrolToken
+--- PASS: TestAnalystCannotRevokeOrCreateEnrolToken (0.00s)
+=== RUN   TestEnrolIngestAndDuplicate
+--- PASS: TestEnrolIngestAndDuplicate (0.16s)
+=== RUN   TestTenantIsolation
+--- PASS: TestTenantIsolation (0.09s)
+=== RUN   TestRevokedAgentIsRejected
+--- PASS: TestRevokedAgentIsRejected (0.10s)
+=== RUN   TestRateLimitIsolatesSourceAndRoute
+--- PASS: TestRateLimitIsolatesSourceAndRoute (0.00s)
+=== RUN   TestOfflineAnalysisReferencesOnlySuppliedEvidence
+--- PASS: TestOfflineAnalysisReferencesOnlySuppliedEvidence (0.00s)
+=== RUN   TestAnalyseRequiresSession
+--- PASS: TestAnalyseRequiresSession (0.00s)
+=== RUN   TestModelAnalysisRejectsEvidenceOutsideIncident
+--- PASS: TestModelAnalysisRejectsEvidenceOutsideIncident (0.00s)
+=== RUN   TestTransitionTable
+--- PASS: TestTransitionTable (0.00s)
+=== RUN   TestOnlyAdminCanClose
+--- PASS: TestOnlyAdminCanClose (0.00s)
+=== RUN   TestLifecycleRoutesNeedLogin
+--- PASS: TestLifecycleRoutesNeedLogin (0.00s)
+=== RUN   TestIncidentLifecycleAndApprovalFlow
+--- PASS: TestIncidentLifecycleAndApprovalFlow (0.60s)
+=== RUN   TestHubDeliversOnlyToOwnTenant
+--- PASS: TestHubDeliversOnlyToOwnTenant (0.00s)
+=== RUN   TestHubPublishNeverBlocks
+--- PASS: TestHubPublishNeverBlocks (0.04s)
+=== RUN   TestHubLimitsStreamsPerTenant
+--- PASS: TestHubLimitsStreamsPerTenant (0.00s)
+=== RUN   TestHubUnsubscribeStopsDelivery
+--- PASS: TestHubUnsubscribeStopsDelivery (0.00s)
+=== RUN   TestHubNilIsSafe
+--- PASS: TestHubNilIsSafe (0.00s)
+=== RUN   TestStreamRequiresLogin
+--- PASS: TestStreamRequiresLogin (0.00s)
+=== RUN   TestStreamPushesLiveAndIsolatesTenants
+--- PASS: TestStreamPushesLiveAndIsolatesTenants (0.41s)
+=== RUN   TestStreamEndsWhenLoginExpires
+--- PASS: TestStreamEndsWhenLoginExpires (1.60s)
+=== RUN   TestStreamKeepsAliveWithPings
+--- PASS: TestStreamKeepsAliveWithPings (0.08s)
+=== RUN   TestLivePipelineFromAgentToStream
+--- PASS: TestLivePipelineFromAgentToStream (0.71s)
+=== RUN   TestDET001Threshold
+--- PASS: TestDET001Threshold (0.00s)
+=== RUN   TestPrivilegedGroups
+--- PASS: TestPrivilegedGroups (0.00s)
+=== RUN   TestDET002Decision
+--- PASS: TestDET002Decision (0.00s)
+=== RUN   TestDET003Decision
+--- PASS: TestDET003Decision (0.00s)
+=== RUN   TestDET004Decision
+--- PASS: TestDET004Decision (0.00s)
+=== RUN   TestLoadIOC
+--- PASS: TestLoadIOC (0.01s)
+=== RUN   TestProjectIOCListLoads
+--- PASS: TestProjectIOCListLoads (0.00s)
+=== RUN   TestIncidentRoutesNeedLogin
+--- PASS: TestIncidentRoutesNeedLogin (0.00s)
+=== RUN   TestDET001Fixtures
+--- PASS: TestDET001Fixtures (0.36s)
+=== RUN   TestDET002Fixtures
+--- PASS: TestDET002Fixtures (0.13s)
+=== RUN   TestDET003Fixtures
+--- PASS: TestDET003Fixtures (0.30s)
+=== RUN   TestDET004Fixtures
+--- PASS: TestDET004Fixtures (0.14s)
+=== RUN   TestDET005Fixtures
+--- PASS: TestDET005Fixtures (0.23s)
+=== RUN   TestIncidentAPIAndTenantIsolation
+--- PASS: TestIncidentAPIAndTenantIsolation (0.25s)
+=== RUN   TestDashboardFilesAreServed
+--- PASS: TestDashboardFilesAreServed (0.00s)
+=== RUN   TestOnlyDashboardFilesAreServed
+--- PASS: TestOnlyDashboardFilesAreServed (0.00s)
+=== RUN   TestSecurityHeadersOnEveryResponse
+--- PASS: TestSecurityHeadersOnEveryResponse (0.00s)
+=== RUN   TestDashboardCodeHasNoUnsafePatterns
+--- PASS: TestDashboardCodeHasNoUnsafePatterns (0.00s)
+=== RUN   TestCrossOriginWritesAreRefused
+--- PASS: TestCrossOriginWritesAreRefused (0.00s)
+=== RUN   TestNextBuildIsServedSafely
+--- PASS: TestNextBuildIsServedSafely (0.01s)
+=== RUN   TestFallbackConsoleWhenNoNextBuild
+--- PASS: TestFallbackConsoleWhenNoNextBuild (0.00s)
+=== RUN   TestAllowedOriginsAreExact
+--- PASS: TestAllowedOriginsAreExact (0.00s)
+PASS
+ok  	github.com/yourname/aegis-nexus-ai/services/api	5.786s
+
