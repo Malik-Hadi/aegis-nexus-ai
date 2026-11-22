@@ -11,7 +11,7 @@ Host: MALIKS-DEVICE | go version go1.27.4 windows/amd64 | Run: 2026-11-22T23:34:
 | AT-06 | PASS | Revoked credential rejected |
 | AT-07 | PASS | 5 positive fixtures alert; 5 benign fixtures raise no alerts (DET-003 benign retested with a unique source IP) |
 | AT-08 | PASS (automated API tests) | lifecycle_test.go, output in docs\evidence\at08-at10-lifecycle-20261122-2339.txt; not shown in the browser |
-| AT-09 | Not re-verified in this session | Covered by Go test suite if present |
+| AT-09 | PASS (automated tests) | Invalid evidence ID rejected and offline fallback verified; output in docs\evidence\at09-ai-20261123-0013.txt |
 | AT-10 | PASS (automated API tests) | approval request, admin decision and requester-cannot-approve covered in lifecycle_test.go, output in docs\evidence\at08-at10-lifecycle-20261122-2339.txt; not shown in the browser |
 | AT-11 | NOT MEASURED | Load tool could not reach the API from Docker |
 | AT-12 | PASS | 38 events, 6 incidents, 1,273 audit rows matched after restore |
@@ -28,4 +28,5 @@ Verify-all: RESULT: 76 passed, 0 failed
 
 
 | TLS | LAB PASS | HTTPS via cmd/tlsproxy; negotiated protocol recorded in docs\evidence\tls-version-20261122-2346.txt; not production TLS |
+
 
