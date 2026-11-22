@@ -22,3 +22,6 @@ agent-queue.jsonl
 .local-verification/
 
 .local-verification/
+
+tlsproxy.exe
+certs/
