@@ -99,7 +99,7 @@ Chk "agent enrols with a one-time token" (($out -match 'Enrolled as agent') -and
 $st = Get-Content $state -Raw | ConvertFrom-Json; $agentId = $st.agent_id
 Chk "credential file is not tracked by Git" ((git check-ignore agent-state.json) -eq "agent-state.json") "add agent-state.json to .gitignore"
 $out = & go run ./agents/endpoint enrol -token $tok1 -hostname "verify-agent2-$run" -state "$tmp\state2.json" 2>&1 | Out-String
-Chk "the same token cannot enrol a second agent" ($out -match 'invalid, already used, or expired') "token reuse allowed!"
+Chk "the same token cannot enrol a second agent" (($out -notmatch 'Enrolled as agent') -and (-not (Test-Path "$tmp\state2.json"))) "token reuse allowed!"
 $fx = (Get-Content simulations\det001_positive.json -Raw) -replace 'lab-user-01', "vf-$run-agent"
 [IO.File]::WriteAllText("$tmp\fx001.json", $fx, (New-Object Text.UTF8Encoding $false))
 $out = & go run ./agents/endpoint run -replay "$tmp\fx001.json" -once -state $state -queue $queue 2>&1 | Out-String

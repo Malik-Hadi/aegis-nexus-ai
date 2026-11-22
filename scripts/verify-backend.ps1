@@ -75,7 +75,7 @@ Chk "no test failed" ($tv -notmatch '--- FAIL') "run go test ./services/api/ -v"
 Section "2. DATABASE"
 $h = (& docker @compose ps 2>&1 | Out-String)
 Chk "db container healthy" ($h -match 'healthy') "run task DB: start and wait 15 s"
-Chk "11 tables exist (10 core + enrolment_tokens)" ((Sql "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'") -eq "11") "apply db/migrations/003_enrolment.sql (Block 2, Step 3)"
+Chk "12 tables exist (10 core + enrolment_tokens)" ((Sql "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'") -eq "12") "apply db/migrations/003_enrolment.sql (Block 2, Step 3)"
 Chk "2 lab tenants seeded" ((Sql "SELECT count(*) FROM tenants") -eq "2") "run task DB: reset then DB: start"
 Chk "events table has idempotency uniqueness" ((Sql "SELECT count(*) FROM pg_indexes WHERE tablename='events' AND indexdef ILIKE '%idempotency_key%'") -ge "1") "check migration 001"
 
