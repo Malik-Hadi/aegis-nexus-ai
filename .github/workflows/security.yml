@@ -1,0 +1,67 @@
+name: security
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1"
+permissions:
+  contents: read
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: govulncheck ./...
+
+  zap-api-scan:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: aegis
+          POSTGRES_DB: aegis
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aegis -d aegis"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgres://aegis@127.0.0.1:5432/aegis?sslmode=disable
+      API_ADDR: 127.0.0.1:18080
+      INSPECT_MODE: monitor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - name: Apply database migrations
+        env:
+          DB_CONTAINER: ${{ job.services.db.id }}
+        run: |
+          for migration in db/migrations/*.sql; do
+            docker exec -i "$DB_CONTAINER" psql -U aegis -d aegis -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Start API and run ZAP API scan
+        run: |
+          export SESSION_SECRET="$(openssl rand -hex 32)"
+          go build -o "$RUNNER_TEMP/aegis-api" ./services/api
+          "$RUNNER_TEMP/aegis-api" &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          curl --fail --silent --retry 20 --retry-connrefused http://127.0.0.1:18080/readyz
+          mkdir -p zap-wrk && cp docs/openapi.yaml zap-wrk/openapi.yaml && chmod -R 777 zap-wrk
+          docker run --rm --network host -v "$PWD/zap-wrk:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py -t openapi.yaml -f openapi -O http://127.0.0.1:18080 -r zap-report.html -I
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-report
+          path: zap-wrk/zap-report.html
