@@ -1,0 +1,16 @@
+﻿
+> aegis-dashboard@1.0.0 test
+> node --test test/*.test.mjs
+
+Γ£ö dashboard gateway preserves the Go contract and streams a frame before upstream closes (36.5691ms)
+Γ£ö updates start immediately and burst arrivals keep a trailing refresh (0.5951ms)
+Γ£ö known messages invalidate the appropriate views (0.5303ms)
+Γä╣ tests 3
+Γä╣ suites 0
+Γä╣ pass 3
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 138.1296
+

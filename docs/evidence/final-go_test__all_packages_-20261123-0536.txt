@@ -1,0 +1,5 @@
+﻿ok  	github.com/yourname/aegis-nexus-ai/agents/endpoint	4.439s
+?   	github.com/yourname/aegis-nexus-ai/cmd/seed	[no test files]
+?   	github.com/yourname/aegis-nexus-ai/cmd/tlsproxy	[no test files]
+ok  	github.com/yourname/aegis-nexus-ai/services/api	4.673s
+

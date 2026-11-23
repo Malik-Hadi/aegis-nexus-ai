@@ -2,3 +2,5 @@
 - DET-001 to DET-004 fired from replayed fixtures; incidents appeared live without refresh.
 - Analysis requested from an incident; approval flow checked as analyst-a (request) and admin-a (decision); audit trail reviewed.
 Screenshots: docs/evidence/screenshots
+
+- DET-005 observed live: ~4 minutes after the last replay, 'Agent heartbeat missing' incident opened automatically; Overview showed agents online 0/1 and active incidents 5. 2026-11-23T05:37:59.1178431+05:00
