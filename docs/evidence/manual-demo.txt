@@ -1,0 +1,4 @@
+﻿Manual demo, 2026-11-23T05:35:39.3577703+05:00, performed by the operator on the local lab (API 8080, console 3000):
+- DET-001 to DET-004 fired from replayed fixtures; incidents appeared live without refresh.
+- Analysis requested from an incident; approval flow checked as analyst-a (request) and admin-a (decision); audit trail reviewed.
+Screenshots: docs/evidence/screenshots
