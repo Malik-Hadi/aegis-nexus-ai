@@ -22,3 +22,6 @@ export function short(v: unknown, n: number): string {
   const s = typeof v === "string" ? v : JSON.stringify(v) ?? "";
   return s.length > n ? `${s.slice(0, n)}…` : s;
 }
+
+/** Clock time only, for dense lists such as the event feed (24 h, local). */
+export const clock = (iso: string | null | undefined): string => (iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "—");

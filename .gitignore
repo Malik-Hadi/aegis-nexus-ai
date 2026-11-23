@@ -25,3 +25,9 @@ agent-queue.jsonl
 
 tlsproxy.exe
 certs/
+
+.backup-ui-*
+step4-ui/
+*-state.json
+*-queue.jsonl
+tlsproxy.exe

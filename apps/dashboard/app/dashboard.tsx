@@ -3,6 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AgentsView from "../components/AgentsView";
 import EventsView from "../components/EventsView";
 import Header from "../components/Header";
+import Nav from "../components/Nav";
+import type { Tab } from "../components/Nav";
+import Overview from "../components/Overview";
+import { ErrorNote } from "../components/States";
+import { ShieldMark } from "../components/Icons";
 import IncidentDetailView from "../components/IncidentDetailView";
 import IncidentsView from "../components/IncidentsView";
 import LoginForm from "../components/LoginForm";
@@ -11,17 +16,14 @@ import type { ToastItem } from "../components/Toasts";
 import { api, setUnauthorizedHandler } from "../lib/api";
 import type { ApiResult } from "../lib/api";
 import { useLive } from "../lib/useLive";
+import { armSound, playAlert, readSoundPref, saveSoundPref, useNow } from "../lib/hooks";
+import { isActive } from "../lib/insights";
 import type { LiveMessage } from "../lib/types";
 import type {
   Agent, ApprovalAction, EventRow, Incident, IncidentDetail, IncidentStatus, Me, Severity,
 } from "../lib/types";
 
-type Tab = "incidents" | "agents" | "events";
-const TABS: { key: Tab; label: string }[] = [
-  { key: "incidents", label: "Incidents" },
-  { key: "agents", label: "Agents" },
-  { key: "events", label: "Event feed" },
-];
+const TITLES: Record<Tab, string> = { overview: "Overview", incidents: "Incidents", agents: "Agents", events: "Event feed" };
 const SEVERITIES: string[] = ["info", "low", "medium", "high", "critical"];
 const asSeverity = (v: unknown): Severity => (typeof v === "string" && SEVERITIES.includes(v) ? (v as Severity) : "info");
 const asString = (v: unknown): string => (typeof v === "string" ? v : "");
@@ -32,7 +34,11 @@ export default function Home() {
   const [me, setMe] = useState<Me | null>(null);
   const [loginError, setLoginError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState<Tab>("incidents");
+  const [tab, setTab] = useState<Tab>("overview");
+  const [loaded, setLoaded] = useState({ incidents: false, agents: false, events: false });
+  const [soundOn, setSoundOn] = useState(false);
+  const soundRef = useRef(false);
+  const now = useNow(15_000);
   const [filter, setFilter] = useState<IncidentStatus | "">("");
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -45,6 +51,13 @@ export default function Home() {
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const toastId = useRef(0);
   const sessionGeneration = useRef(0);
+
+  useEffect(() => { const on = readSoundPref(); setSoundOn(on); soundRef.current = on; }, []);
+  const toggleSound = () => {
+    const on = !soundOn;
+    if (on) { armSound(); playAlert(); }
+    setSoundOn(on); soundRef.current = on; saveSoundPref(on);
+  };
 
   const schedule = useCallback((name: string, fn: () => void) => {
     const old = timers.current[name];
@@ -64,17 +77,23 @@ export default function Home() {
     const generation = sessionGeneration.current;
     const q = `/v1/incidents?limit=100${filter ? `&status=${encodeURIComponent(filter)}` : ""}`;
     const r = await api<{ incidents: Incident[] }>("GET", q);
-    if (generation === sessionGeneration.current && r.ok && r.data) setIncidents(r.data.incidents);
+    if (generation !== sessionGeneration.current) return;
+    if (r.ok && r.data) setIncidents(r.data.incidents);
+    setLoaded((l) => ({ ...l, incidents: true }));
   }, [filter]);
   const loadAgents = useCallback(async () => {
     const generation = sessionGeneration.current;
     const r = await api<{ agents: Agent[] }>("GET", "/v1/agents");
-    if (generation === sessionGeneration.current && r.ok && r.data) setAgents(r.data.agents);
+    if (generation !== sessionGeneration.current) return;
+    if (r.ok && r.data) setAgents(r.data.agents);
+    setLoaded((l) => ({ ...l, agents: true }));
   }, []);
   const loadEvents = useCallback(async () => {
     const generation = sessionGeneration.current;
     const r = await api<{ events: EventRow[] }>("GET", "/v1/events?limit=100");
-    if (generation === sessionGeneration.current && r.ok && r.data) setEvents(r.data.events);
+    if (generation !== sessionGeneration.current) return;
+    if (r.ok && r.data) setEvents(r.data.events);
+    setLoaded((l) => ({ ...l, events: true }));
   }, []);
   const loadDetail = useCallback(async (id: string) => {
     const generation = sessionGeneration.current;
@@ -95,7 +114,8 @@ export default function Home() {
     timers.current = {};
     setIncidents([]); setAgents([]); setEvents([]); setToasts([]);
     setMe(null); setDetail(null); setSelected(null); setNewToken(null);
-    setTab("incidents"); setFilter(""); setError("");
+    setTab("overview"); setFilter(""); setError("");
+    setLoaded({ incidents: false, agents: false, events: false });
   }, []);
 
   const sessionEnded = useCallback(() => {
@@ -148,6 +168,7 @@ export default function Home() {
         case "event.new": schedule("events", () => void loadEvents()); break;
         case "incident.created":
           toast(`New ${asString(d.severity)} incident: ${asString(d.title) || asString(d.rule_id)}`, asSeverity(d.severity));
+          if (soundRef.current && (d.severity === "high" || d.severity === "critical")) playAlert();
           schedule("incidents", () => void loadIncidents());
           break;
         case "incident.updated":
@@ -206,47 +227,50 @@ export default function Home() {
   const openIncident = (id: string) => { setError(""); void loadDetail(id); };
   const back = () => { setSelected(null); setDetail(null); setError(""); };
 
+  const goTo = (t: Tab) => { setTab(t); setError(""); back(); };
+  const openFromOverview = (id: string) => { setTab("incidents"); openIncident(id); };
+  const activeCount = incidents.filter(isActive).length;
+
   // ---------- render ----------
   return (
     <>
       <Toasts toasts={toasts} />
       {booting ? (
-        <p className="p-6 text-sm text-slate-500">Loading…</p>
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4" aria-busy="true">
+          <ShieldMark className="h-12 w-12" />
+          <p className="text-sm font-semibold tracking-wide">AEGIS NEXUS AI</p>
+          <p className="text-sm text-[#8fa3b8]">Loading…</p>
+        </div>
       ) : !me ? (
         <LoginForm error={loginError} busy={busy} onSubmit={login} />
       ) : (
-        <>
-          <Header me={me} status={live} onLogout={logout} />
-          <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-white px-5 pt-2 dark:border-slate-800 dark:bg-slate-900">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => { setTab(t.key); setError(""); back(); }}
-                className={`border-b-4 px-4 py-2 text-sm ${tab === t.key ? "border-blue-600 font-semibold" : "border-transparent text-slate-500"}`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
-          <main className="mx-auto max-w-6xl p-5">
-            {error && tab !== "incidents" ? <div role="alert" className="mb-3 rounded-md bg-red-100 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{error}</div> : null}
-            {tab === "incidents" ? (
-              selected && detail ? (
-                <IncidentDetailView key={selected}
-                  detail={detail} me={me} error={error}
-                  onBack={back} onStatus={setStatus} onAssignMe={assignMe} onRequest={requestApproval} onDecide={decide}
-                />
-              ) : (
-                <IncidentsView incidents={incidents} agents={agents} events={events} filter={filter} onFilter={setFilter} onOpen={openIncident} />
-              )
-            ) : null}
-            {tab === "agents" ? (
-              <AgentsView agents={agents} isAdmin={me.role === "admin"} newToken={newToken} onCreateToken={createToken} onRevoke={revoke} />
-            ) : null}
-            {tab === "events" ? <EventsView events={events} /> : null}
-          </main>
-        </>
+        <div className="min-h-screen md:grid md:grid-cols-[15rem_minmax(0,1fr)]">
+          <Nav tab={tab} onTab={goTo} activeIncidents={activeCount} />
+          <div className="flex min-w-0 flex-col pb-20 md:pb-0">
+            <Header me={me} status={live} title={TITLES[tab]} soundOn={soundOn} onSound={toggleSound} onLogout={logout} />
+            <main className="mx-auto w-full max-w-7xl p-4 md:p-6">
+              {error && tab !== "incidents" ? <ErrorNote>{error}</ErrorNote> : null}
+              {tab === "overview" ? (
+                <Overview incidents={incidents} agents={agents} events={events} now={now} loaded={loaded}
+                  isAdmin={me.role === "admin"} onOpen={openFromOverview} onGo={goTo} />
+              ) : null}
+              {tab === "incidents" ? (
+                selected && detail ? (
+                  <IncidentDetailView key={selected}
+                    detail={detail} me={me} error={error}
+                    onBack={back} onStatus={setStatus} onAssignMe={assignMe} onRequest={requestApproval} onDecide={decide}
+                  />
+                ) : (
+                  <IncidentsView incidents={incidents} loaded={loaded.incidents} now={now} filter={filter} onFilter={setFilter} onOpen={openIncident} />
+                )
+              ) : null}
+              {tab === "agents" ? (
+                <AgentsView agents={agents} loaded={loaded.agents} now={now} isAdmin={me.role === "admin"} newToken={newToken} onCreateToken={createToken} onRevoke={revoke} />
+              ) : null}
+              {tab === "events" ? <EventsView events={events} loaded={loaded.events} /> : null}
+            </main>
+          </div>
+        </div>
       )}
     </>
   );

@@ -1,0 +1,93 @@
+﻿Step 4 UI | MALIKS-DEVICE | node v26.13.1 | 2026-11-23T04:25:30.6311625+05:00
+=== typecheck
+
+> aegis-dashboard@1.0.0 typecheck
+> tsc --noEmit
+
+typecheck : PASS
+=== unit tests
+
+> aegis-dashboard@1.0.0 test
+> node --test test/*.test.mjs
+
+✔ dashboard gateway preserves the Go contract and streams a frame before upstream closes (58.4822ms)
+✔ updates start immediately and burst arrivals keep a trailing refresh (1.1263ms)
+✔ known messages invalidate the appropriate views (1.2149ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 185.5299
+unit tests : PASS
+=== production build
+
+> aegis-dashboard@1.0.0 build
+> next build
+
+▲ Next.js 16.4.6 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.mjs took 87ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1717ms
+  Running TypeScript ...
+  Finished TypeScript in 2.3s ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/3) ...
+✓ Generating static pages using 5 workers (3/3) in 657ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+└ ƒ /v1/[...parts]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+production build : PASS
+=== production fixture (headers, CSP nonce, login, live stream)
+▲ Next.js 16.4.6
+- Local:         http://127.0.0.1:62240
+- Network:       http://127.0.0.1:62240
+✓ Ready in 375ms
+✓ Running next.config.mjs took 30ms
+PASS production page, CSP nonce, unauthorized requests and origin check
+PASS login and session forwarding through Next.js
+PASS live SSE frame through Next.js while stream stayed open (0 ms locally)
+production fixture (headers, CSP nonce, login, live stream) : PASS
+=== browser test (Playwright: sign in, live status, live event feed)
+▲ Next.js 16.4.6
+- Local:         http://127.0.0.1:62251
+- Network:       http://127.0.0.1:62251
+✓ Ready in 205ms
+✓ Running next.config.mjs took 24ms
+PASS production page, CSP nonce, unauthorized requests and origin check
+PASS login and session forwarding through Next.js
+PASS live SSE frame through Next.js while stream stayed open (0 ms locally)
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Users\TECH ZONE\AppData\Local\ms-playwright\chromium-1255\chrome-win64\chrome.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     npx playwright install                                 ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+    at D:\Projects\aegis-nexus-ai\apps\dashboard\scripts\test-production.mjs:102:36 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v26.13.1
+browser test (Playwright: sign in, live status, live event feed) : FAIL

@@ -1,0 +1,1 @@
+﻿browser test PASS (Chromium, Playwright 2026-11-23T04:59:14.2092402+05:00): login, live event feed, literal telemetry rendering
