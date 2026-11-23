@@ -33,3 +33,6 @@ step4-ui/
 tlsproxy.exe
 
 deploy/bin/
+sim-state.json
+load-state.json
+*.backup-ui-*

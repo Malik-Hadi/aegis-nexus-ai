@@ -1,0 +1,6 @@
+﻿AT-11 load test, observed 2026-11-23 (operator-run, k6 v2.4.0, tests/load/ingest.js, 10 batches x 10 events per second for 5 minutes)
+Host: MALIKS-DEVICE | 12th Gen Intel(R) Core(TM) i5-1245U | 16 GB RAM | go1.27.4 windows/amd64
+Run run11231512: durable_acceptance 100.00% (30000 of 30000) | http_req_failed 0.00% | p(95)=50.59 ms | dropped_iterations 0 | rows stored for source_ref k6-run11231512: 30000
+Earlier run run11230628: durable_acceptance 58.81% (17650 of 30010); the API process was no longer running for the last part of the run (connection refused, 12360 failures, 17650 rows stored).
+No crash or panic was found in api.log; the cause was not proven. The launcher script that supervised the API is suspected. The passing run started the API directly in its own window.
+Logs: docs/evidence/k6-run11230628.txt and docs/evidence/k6-run11231512.txt

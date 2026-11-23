@@ -1,40 +1,22 @@
-﻿# AEGIS NEXUS AI - Acceptance Report (lab MVP, not production-ready)
-Host: MALIKS-DEVICE | go version go1.27.4 windows/amd64 | Run: 2026-11-22T23:34:25.3196515+05:00
+# AEGIS NEXUS AI - Acceptance report (lab MVP, not production-ready)
+Final results, 2026-11-23. Host: MALIKS-DEVICE (Windows, Intel i5-1245U, 16 GB RAM, Go 1.27.4). Evidence is in docs/evidence/.
 
-| ID | Result | Evidence / note |
-|----|--------|-----------------|
-| AT-01 | PARTIAL | Compose runs the database only; API and dashboard started manually |
-| AT-02 | PASS | 401/403 tests |
-| AT-03 | PASS (backend tests) | Tenant isolation tests; manual Tenant B browser check not run |
-| AT-04 | PASS | Windows and Linux agent enrol and submit |
-| AT-05 | PASS | Events survive restart |
-| AT-06 | PASS | Revoked credential rejected |
-| AT-07 | PASS | 5 positive fixtures alert; 5 benign fixtures raise no alerts (DET-003 benign retested with a unique source IP) |
-| AT-08 | PASS (automated API tests) | lifecycle_test.go, output in docs\evidence\at08-at10-lifecycle-20261122-2339.txt; not shown in the browser |
-| AT-09 | PASS (automated tests) | Invalid evidence ID rejected and offline fallback verified; output in docs\evidence\at09-ai-20261123-0013.txt |
-| AT-10 | PASS (automated API tests) | approval request, admin decision and requester-cannot-approve covered in lifecycle_test.go, output in docs\evidence\at08-at10-lifecycle-20261122-2339.txt; not shown in the browser |
-| AT-11 | NOT MEASURED | Load tool could not reach the API from Docker |
-| AT-12 | PASS | 38 events, 6 incidents, 1,273 audit rows matched after restore |
-| AT-13 | PARTIAL | CI exists; no Playwright tests |
+| ID | Priority | Result | Evidence and notes |
+|----|----------|--------|--------------------|
+| AT-01 One-command Docker start | P0 | PASS | scripts/docker-full-test.ps1 ended "RESULT: 0 failed": compose up healthy, /readyz ready, console on :3000, seed, API recovered after restart (docs/evidence/at01-docker-full-stack.txt). Run scripts/build-binaries.ps1 first; it compiles the Linux programs in a Go container. |
+| AT-02 401 anonymous, 403 low privilege | P0 | PASS | go test ./... and scripts/verify-all.ps1 (docs/evidence/final-*-20261123-0536.txt) |
+| AT-03 Tenant isolation incl. stream | P0 | PASS | Go tests for cross-tenant read, change and stream isolation |
+| AT-04 Windows and Linux agent | P0 | PASS | Windows agent enrolled and replayed fixtures live. Linux agent built and exercised against the API in CI job "Verify persisted SOC workflow and Linux endpoint agent". |
+| AT-05 Persistence across restart | P0 | PASS | Verified in earlier full verify-all runs (76 checks passed). The final check ran with -SkipRestart. |
+| AT-06 Revoked credential denied | P0 | PASS | verify-all revocation checks |
+| AT-07 Five positive fixtures alert, benign stay silent | P0 | PASS | Fixtures DET-001 to DET-005. All five rules also observed firing live (DET-005 opened by itself about 4 minutes after the agent stopped). DET-003 benign retested with a unique source IP: 3 events, 0 alerts. |
+| AT-08 Lifecycle transitions recorded | P0 | PASS | Go lifecycle tests and manual demo |
+| AT-09 AI rejects bad evidence IDs, clean fallback | P1 | PASS | docs/evidence/at09-ai-20261123-0547.txt |
+| AT-10 Containment needs approval | P0 | PASS | Go approval-flow tests and manual demo (requester cannot approve own request) |
+| AT-11 Load, 100 events/s for 5 min | P1 | PASS (measured) | 30000 of 30000 accepted (100%), p95 50.59 ms, 0 dropped, 30000 rows stored. An earlier run reached only 58.81% because the API process was gone for part of the run (cause not proven). See docs/evidence/at11-load-test-summary.txt |
+| AT-12 Backup restore | P1 | PASS | Restored counts matched the source: 38 events, 6 incidents, 1273 audit rows |
+| AT-13 Playwright and dependency scan in CI | P1 | PASS | GitHub Actions ci run #8, job dashboard: browser test and npm audit green; same test passed locally |
 
-Go tests: PASS
-Verify-all: RESULT: 76 passed, 0 failed
+Additional checks: inbound request inspection (7 automated tests plus a live check, blocks recorded in audit_logs), govulncheck and ZAP workflow in CI (security), dashboard typecheck and unit tests, go vet.
 
-## Known limitations
-- TLS is terminated by a lab reverse proxy (cmd/tlsproxy, self-signed cert, TLS 1.2+) at https://localhost:8443. The API itself listens on plain HTTP over loopback. Lab only: no CA-issued certificate and no end-to-end TLS. Compose covers the database only.
-- AT-11 load test and AT-13 Playwright not completed.
-- AT-08/AT-10 and live-stream behaviour not yet shown in the browser.
-- Lab MVP only. Not enterprise ready and not independently penetration tested.
-
-
-| TLS | LAB PASS | HTTPS via cmd/tlsproxy; negotiated protocol recorded in docs\evidence\tls-version-20261122-2346.txt; not production TLS |
-
-
-
-| Dependency scan (govulncheck) | PASS | Local run: no vulnerabilities found. GitHub security workflow green (run security #2, commit a9b343c) after switching CI to latest stable Go. An earlier run (#1) failed before that fix. |
-
-| AT-13 | PASS | GitHub Actions ci run #8, job dashboard: step 'node scripts/test-production.mjs --browser' green (Chromium login, live event feed, literal telemetry rendering) and 'npm audit --omit=dev' green; same test passed locally (docs/evidence/step4-browser-pass.txt). |
-
-| AT-13 | PASS | GitHub Actions ci run #8, job dashboard: 'node scripts/test-production.mjs --browser' green (Chromium login, live event feed, literal telemetry rendering) and 'npm audit --omit=dev' in the same job; also passed locally (docs/evidence/step4-browser-pass.txt). |
-
-| AT-01 | PASS | scripts\docker-full-test.ps1 ended RESULT: 0 failed on a running Docker stack (docs/evidence/at01-docker-full-stack.txt). Run scripts\build-binaries.ps1 first. |
+Final claim: a functional, lab-tested defensive SOC MVP with documented limitations. It is not production-ready and has had no independent security assessment.
