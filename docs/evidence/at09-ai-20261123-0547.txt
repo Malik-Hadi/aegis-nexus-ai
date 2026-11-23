@@ -1,0 +1,19 @@
+﻿=== RUN   TestAnalysisAdapterHTTPS
+--- PASS: TestAnalysisAdapterHTTPS (0.01s)
+=== RUN   TestAnalystOnAdminRouteGets403
+--- PASS: TestAnalystOnAdminRouteGets403 (0.00s)
+=== RUN   TestAnalystCanUseNormalRoute
+--- PASS: TestAnalystCanUseNormalRoute (0.00s)
+=== RUN   TestAnalystCannotRevokeOrCreateEnrolToken
+--- PASS: TestAnalystCannotRevokeOrCreateEnrolToken (0.00s)
+=== RUN   TestOfflineAnalysisReferencesOnlySuppliedEvidence
+--- PASS: TestOfflineAnalysisReferencesOnlySuppliedEvidence (0.00s)
+=== RUN   TestAnalyseRequiresSession
+--- PASS: TestAnalyseRequiresSession (0.00s)
+=== RUN   TestModelAnalysisRejectsEvidenceOutsideIncident
+--- PASS: TestModelAnalysisRejectsEvidenceOutsideIncident (0.00s)
+=== RUN   TestFallbackConsoleWhenNoNextBuild
+--- PASS: TestFallbackConsoleWhenNoNextBuild (0.00s)
+PASS
+ok  	github.com/yourname/aegis-nexus-ai/services/api	0.443s
+

@@ -34,3 +34,5 @@ Verify-all: RESULT: 76 passed, 0 failed
 | Dependency scan (govulncheck) | PASS | Local run: no vulnerabilities found. GitHub security workflow green (run security #2, commit a9b343c) after switching CI to latest stable Go. An earlier run (#1) failed before that fix. |
 
 | AT-13 | PASS | GitHub Actions ci run #8, job dashboard: step 'node scripts/test-production.mjs --browser' green (Chromium login, live event feed, literal telemetry rendering) and 'npm audit --omit=dev' green; same test passed locally (docs/evidence/step4-browser-pass.txt). |
+
+| AT-13 | PASS | GitHub Actions ci run #8, job dashboard: 'node scripts/test-production.mjs --browser' green (Chromium login, live event feed, literal telemetry rendering) and 'npm audit --omit=dev' in the same job; also passed locally (docs/evidence/step4-browser-pass.txt). |
