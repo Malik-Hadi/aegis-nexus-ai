@@ -36,3 +36,5 @@ Verify-all: RESULT: 76 passed, 0 failed
 | AT-13 | PASS | GitHub Actions ci run #8, job dashboard: step 'node scripts/test-production.mjs --browser' green (Chromium login, live event feed, literal telemetry rendering) and 'npm audit --omit=dev' green; same test passed locally (docs/evidence/step4-browser-pass.txt). |
 
 | AT-13 | PASS | GitHub Actions ci run #8, job dashboard: 'node scripts/test-production.mjs --browser' green (Chromium login, live event feed, literal telemetry rendering) and 'npm audit --omit=dev' in the same job; also passed locally (docs/evidence/step4-browser-pass.txt). |
+
+| AT-01 | PASS | scripts\docker-full-test.ps1 ended RESULT: 0 failed on a running Docker stack (docs/evidence/at01-docker-full-stack.txt). Run scripts\build-binaries.ps1 first. |

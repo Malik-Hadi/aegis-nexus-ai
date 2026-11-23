@@ -1,22 +1,9 @@
-# Go API + seed tool + lab agent in one small image. Built from the repo root.
-FROM golang:1.26-alpine AS build
-WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN mkdir -p /out
-RUN CGO_ENABLED=0 go build -trimpath -buildvcs=false -o /out/api ./services/api
-RUN CGO_ENABLED=0 go build -trimpath -buildvcs=false -o /out/seed ./cmd/seed
-RUN CGO_ENABLED=0 go build -trimpath -buildvcs=false -o /out/agent ./agents/endpoint
-RUN ls -l /out
-
 FROM alpine:3.20
 RUN adduser -D -u 10001 aegis
 WORKDIR /app
-COPY --from=build /out/api /app/api
-COPY --from=build /out/seed /app/seed
-COPY --from=build /out/agent /app/agent
+COPY deploy/bin/api deploy/bin/seed deploy/bin/agent /app/
 COPY simulations /app/simulations
+RUN chmod +x /app/api /app/seed /app/agent
 USER aegis
 ENV IOC_FILE=/app/simulations/ioc_hashes.txt
 CMD ["/app/api"]

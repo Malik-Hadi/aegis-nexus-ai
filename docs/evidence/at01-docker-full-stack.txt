@@ -1,0 +1,4 @@
+﻿AT-01 observed 2026-11-23T06:04:29.0512510+05:00 on MALIKS-DEVICE (operator-run, output reviewed):
+scripts\build-binaries.ps1 listed api, seed, agent; scripts\docker-full-test.ps1 -KeepData ended RESULT: 0 failed
+PASS compose up --wait | PASS API /readyz ready, database up | PASS console answers on :3000 | PASS seed created 4 lab users | PASS API healthy again after restart
+Containers: deploy-api-1 healthy, deploy-dashboard-1 healthy, deploy-db-1 healthy

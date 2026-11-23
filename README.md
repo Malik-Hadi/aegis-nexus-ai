@@ -51,6 +51,7 @@ Generate a secret with `openssl rand -hex 32`, or in PowerShell `-join ((48..57)
 Start everything:
 
 ```bash
+powershell -ExecutionPolicy Bypass -File scripts\build-binaries.ps1   # compiles the Linux programs; needs only Docker
 docker compose -f deploy/docker-compose.yml --env-file .env --profile full up -d --build --wait
 ```
 

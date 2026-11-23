@@ -31,3 +31,5 @@ step4-ui/
 *-state.json
 *-queue.jsonl
 tlsproxy.exe
+
+deploy/bin/

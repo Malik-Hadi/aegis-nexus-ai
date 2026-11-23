@@ -7,6 +7,7 @@ $script:fail = 0
 function Check($name, $ok, $detail) { if ($ok) { Write-Host "PASS  $name" -ForegroundColor Green } else { Write-Host "FAIL  $name  $detail" -ForegroundColor Red; $script:fail++ } }
 if (-not (Test-Path .env)) { Write-Host "Create .env from .env.example first." -ForegroundColor Red; exit 1 }
 if (-not $KeepData) { docker compose @c down -v 2>&1 | Out-Null }
+& powershell -ExecutionPolicy Bypass -File scripts\build-binaries.ps1
 docker compose @c up -d --build --wait 2>&1 | Select-Object -Last 15
 Check "compose up --wait succeeded" ($LASTEXITCODE -eq 0) "see: docker compose logs"
 $r = (docker compose @c exec -T api wget -qO- http://127.0.0.1:8080/readyz 2>&1 | Out-String)
